@@ -1,18 +1,21 @@
 import { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { Filter, Search, ChefHat, School, Map as MapIcon, ChevronRight, Briefcase } from 'lucide-react';
+import { Filter, Search, ChefHat, School, Map as MapIcon, ChevronRight, Briefcase, Plus } from 'lucide-react';
 import MapComponent from '../components/MapComponent';
+import { AddEntityModal } from '../components/AddEntityModal';
 import { mockEntities } from '../data/mockData';
-import type { EntityType } from '../types';
+import type { GeoEntity, EntityType } from '../types';
 
 const MapDashboard = () => {
   const [filterType, setFilterType] = useState<EntityType | 'all'>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [mapCenter, setMapCenter] = useState<[number, number]>([-6.200000, 106.816666]); // Default Jakarta
   const [mapZoom, setMapZoom] = useState(12);
+  const [entities, setEntities] = useState<GeoEntity[]>(mockEntities);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const filteredEntities = useMemo(() => {
-    return mockEntities.filter(entity => {
+    return entities.filter(entity => {
       const matchType = filterType === 'all' || entity.type === filterType;
       const term = searchQuery.toLowerCase();
       const matchSearch = entity.name.toLowerCase().includes(term) || 
@@ -33,6 +36,11 @@ const MapDashboard = () => {
     setMapZoom(zoom);
   };
 
+  const handleAddEntity = (newEntity: GeoEntity) => {
+    setEntities([newEntity, ...entities]);
+    focusRegion(newEntity.lat, newEntity.lng, 15);
+  };
+
   return (
     <div className="pt-20 min-h-[calc(100vh-80px)] flex bg-gray-50 flex-col md:flex-row overflow-hidden">
       
@@ -43,10 +51,19 @@ const MapDashboard = () => {
         className="w-full md:w-[380px] bg-white border-r border-gray-200 flex flex-col h-[calc(100vh-80px)] shrink-0 z-10 shadow-lg"
       >
         <div className="p-6 border-b border-gray-100">
-          <h2 className="text-xl font-bold text-dark-900 mb-2 flex items-center gap-2">
-            <MapIcon className="w-5 h-5 text-brand-600" />
-            Navigasi Sebaran
-          </h2>
+          <div className="flex items-center justify-between mb-2">
+            <h2 className="text-xl font-bold text-dark-900 flex items-center gap-2">
+              <MapIcon className="w-5 h-5 text-brand-600" />
+              Navigasi Sebaran
+            </h2>
+            <button 
+              onClick={() => setIsModalOpen(true)}
+              className="p-1.5 bg-brand-50 text-brand-600 hover:bg-brand-100 rounded-lg transition-colors group"
+              title="Tambah Titik Baru"
+            >
+              <Plus className="w-5 h-5 group-hover:scale-110 transition-transform" />
+            </button>
+          </div>
           <p className="text-sm text-gray-500 mb-6">Pantau kapasitas Dapur dan kebutuhan Sekolah di sekitarnya secara real-time.</p>
 
           <div className="relative mb-6">
@@ -177,6 +194,11 @@ const MapDashboard = () => {
         </div>
       </div>
       
+      <AddEntityModal 
+        isOpen={isModalOpen} 
+        onClose={() => setIsModalOpen(false)} 
+        onAdd={handleAddEntity} 
+      />
     </div>
   );
 };
