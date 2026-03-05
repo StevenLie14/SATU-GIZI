@@ -104,10 +104,10 @@ const LandingPage = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 divide-x divide-gray-100">
             {[
-              { label: 'Dapur Aktif', value: 'angka', icon: Factory, color: 'text-brand-600', bg: 'bg-brand-50' },
-              { label: 'Sekolah Terjangkau', value: 'angka', icon: School, color: 'text-blue-600', bg: 'bg-blue-50' },
-              { label: 'Siswa Penerima', value: 'angka', icon: CheckCircle2, color: 'text-amber-500', bg: 'bg-amber-50' },
-              { label: 'Vendor B2B', value: 'angka', icon: Briefcase, color: 'text-indigo-600', bg: 'bg-indigo-50' },
+              { label: 'lorem ipsum', value: 'angka', icon: Factory, color: 'text-brand-600', bg: 'bg-brand-50' },
+              { label: 'lorem ipsum', value: 'angka', icon: School, color: 'text-blue-600', bg: 'bg-blue-50' },
+              { label: 'lorem ipsum', value: 'angka', icon: CheckCircle2, color: 'text-amber-500', bg: 'bg-amber-50' },
+              { label: 'lorem ipsum', value: 'angka', icon: Briefcase, color: 'text-indigo-600', bg: 'bg-indigo-50' },
             ].map((stat, i) => (
               <motion.div 
                 key={i}
@@ -132,8 +132,8 @@ const LandingPage = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-3xl mx-auto mb-16">
             <h2 className="text-brand-600 font-semibold tracking-wide uppercase text-sm mb-3">Tiga Pilar Utama</h2>
-            <h3 className="text-3xl md:text-4xl font-bold text-dark-900 mb-4">Membangun Ekosistem Berkelanjutan</h3>
-            <p className="text-gray-600 text-lg">Solusi digital end-to-end untuk transparansi, efisiensi, dan pemberdayaan ekonomi lokal dalam program MBG.</p>
+            <h3 className="text-3xl md:text-4xl font-bold text-dark-900 mb-4">Lorem ipsum dolor sit amet.</h3>
+            <p className="text-gray-600 text-lg">Lorem, ipsum dolor sit amet consectetur adipisicing elit. Eveniet, fugit.</p>
           </div>
 
           <div className="grid md:grid-cols-3 gap-8">
@@ -146,10 +146,10 @@ const LandingPage = () => {
               </div>
               <h4 className="text-xl font-bold text-dark-900 mb-3">Perizinan & Pengawasan</h4>
               <p className="text-gray-600 leading-relaxed mb-6">
-                Platform satu pintu untuk validasi higene, sertifikasi BPOM, dan standarisasi dapur MBG secara ketat sebelum beroperasi.
+                Lorem, ipsum dolor sit amet consectetur adipisicing elit. Dolorum laborum dicta asperiores illo quas necessitatibus?
               </p>
               <ul className="space-y-2">
-                {['Sertifikasi Sanitasi', 'Dashboard Kepatuhan', 'Sistem Peringatan Dini'].map((item, i) => (
+                {['lorem ipsum dolor', 'lorem ipsum dolor', 'lorem ipsum dolor'].map((item, i) => (
                   <li key={i} className="flex items-center gap-2 text-sm text-gray-600">
                     <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />
                     {item}
@@ -169,10 +169,10 @@ const LandingPage = () => {
                 </div>
                 <h4 className="text-xl font-bold text-dark-900 mb-3">Matching Demand-Supply</h4>
                 <p className="text-gray-600 leading-relaxed mb-6">
-                  Pemetaan geospasial real-time yang mensinkronkan kapasitas produksi Dapur dengan kebutuhan porsi harian Sekolah terdekat.
+                  Lorem ipsum dolor sit amet consectetur, adipisicing elit. Commodi iure repudiandae repellat doloremque, eius quibusdam!
                 </p>
                 <ul className="space-y-2">
-                  {['Routing Distribusi AI', 'Geofencing Peta', 'Efisiensi Logistik'].map((item, i) => (
+                  {['lorem ipsum dolor', 'lorem ipsum dolor', 'lorem ipsum dolor'].map((item, i) => (
                     <li key={i} className="flex items-center gap-2 text-sm text-gray-600">
                       <div className="w-1.5 h-1.5 rounded-full bg-brand-500" />
                       {item}
@@ -191,10 +191,10 @@ const LandingPage = () => {
               </div>
               <h4 className="text-xl font-bold text-dark-900 mb-3">B2B Matchmaking</h4>
               <p className="text-gray-600 leading-relaxed mb-6">
-                Menghubungkan UMKM, petani, peternak, dan nelayan lokal langsung dengan Dapur MBG untuk suplai bahan baku segar dan adil.
+                Lorem ipsum dolor sit amet consectetur, adipisicing elit. Saepe harum deleniti mollitia est, cumque ex.
               </p>
               <ul className="space-y-2">
-                {['Katalog Komoditas UMKM', 'Sistem Kemitraan', 'Harga Transparan'].map((item, i) => (
+                {['lorem ipsum dolor', 'lorem ipsum dolor', 'lorem ipsum dolor'].map((item, i) => (
                   <li key={i} className="flex items-center gap-2 text-sm text-gray-600">
                     <div className="w-1.5 h-1.5 rounded-full bg-amber-500" />
                     {item}
@@ -215,9 +215,9 @@ const LandingPage = () => {
              <div className="absolute bottom-0 left-0 w-64 h-64 bg-blue-500 rounded-full blur-[100px] opacity-20" />
              
              <div className="relative z-10">
-               <h2 className="text-3xl md:text-4xl font-bold text-white mb-6">Siap Menjelajahi Sebaran Dapur MBG?</h2>
+               <h2 className="text-3xl md:text-4xl font-bold text-white mb-6">Siap Menjelajahi Sebaran Vendor-Vendor MBG?</h2>
                <p className="text-gray-400 max-w-2xl mx-auto mb-10 text-lg">
-                 Masuk ke Peta Interaktif kami untuk melihat secara langsung infrastruktur, cakupan, dan kapasitas dapur di seluruh wilayah Indonesia.
+                 Masuk ke Peta Interaktif kami untuk melihat secara langsung infrastruktur, cakupan, dan kapasitas vendor di seluruh wilayah Indonesia.
                </p>
                <Link to="/map" className="inline-flex justify-center items-center gap-2 px-8 py-4 bg-brand-500 text-white font-semibold rounded-full hover:bg-brand-400 transition-all shadow-[0_0_20px_rgba(34,197,94,0.3)] hover:shadow-[0_0_30px_rgba(34,197,94,0.5)]">
                   Mulai Jelajah Peta

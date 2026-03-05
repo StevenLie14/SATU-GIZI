@@ -12,11 +12,11 @@ interface AddEntityModalProps {
 export const AddEntityModal = ({ isOpen, onClose, onAdd }: AddEntityModalProps) => {
   const [formData, setFormData] = useState({
     name: '',
-    type: 'school' as EntityType,
+    type: 'vendor' as EntityType,
     address: '',
     lat: '',
     lng: '',
-    capacity: '',
+    commodities: '',
     status: 'active' as 'active' | 'inactive' | 'pending',
   });
 
@@ -36,7 +36,7 @@ export const AddEntityModal = ({ isOpen, onClose, onAdd }: AddEntityModalProps) 
       lat: parseFloat(formData.lat),
       lng: parseFloat(formData.lng),
       status: formData.status,
-      capacity: formData.capacity ? parseInt(formData.capacity) : undefined,
+      commodities: formData.commodities.split(',').map(c => c.trim()).filter(Boolean),
       rating: 0,
     };
 
@@ -44,11 +44,11 @@ export const AddEntityModal = ({ isOpen, onClose, onAdd }: AddEntityModalProps) 
     onClose();
     setFormData({
       name: '',
-      type: 'school',
+      type: 'vendor',
       address: '',
       lat: '',
       lng: '',
-      capacity: '',
+      commodities: '',
       status: 'active',
     });
   };
@@ -93,7 +93,7 @@ export const AddEntityModal = ({ isOpen, onClose, onAdd }: AddEntityModalProps) 
                   value={formData.name}
                   onChange={e => setFormData({...formData, name: e.target.value})}
                   className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
-                  placeholder="Contoh: SDN 01 Merdeka"
+                  placeholder="Contoh: Jl Kemanggisan Utama Raya No. 123"
                 />
               </div>
 
@@ -102,7 +102,7 @@ export const AddEntityModal = ({ isOpen, onClose, onAdd }: AddEntityModalProps) 
                   <label className="block text-sm font-medium text-gray-700 mb-1">Tipe</label>
                   <input
                     type="text"
-                    value="Sekolah"
+                    value="Vendor"
                     readOnly
                     disabled
                     className="w-full px-3 py-2 border border-gray-200 rounded-lg bg-gray-100 text-gray-600 cursor-not-allowed focus:outline-none"
@@ -163,14 +163,14 @@ export const AddEntityModal = ({ isOpen, onClose, onAdd }: AddEntityModalProps) 
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Kapasitas (Siswa)
+                  Komoditas (pisahkan dengan koma)
                 </label>
                 <input
-                  type="number"
-                  value={formData.capacity}
-                  onChange={e => setFormData({...formData, capacity: e.target.value})}
+                  type="text"
+                  value={formData.commodities}
+                  onChange={e => setFormData({...formData, commodities: e.target.value})}
                   className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500"
-                  placeholder="Kosongkan jika tidak ada"
+                  placeholder="Contoh: Beras, Sayuran, Daging Ayam"
                 />
               </div>
 
