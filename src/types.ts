@@ -1,4 +1,4 @@
-export type EntityType = "vendor";
+export type EntityType = "school" | "kitchen" | "vendor";
 
 export interface GeoEntity {
   id: string;
@@ -12,6 +12,7 @@ export interface GeoEntity {
   rating?: number;
   contact?: string;
   commodities?: string[];
+  auditScore?: number;
 }
 
 export interface AddEntityModalProps {

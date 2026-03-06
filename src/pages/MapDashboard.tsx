@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { Filter, Search, Map as MapIcon, ChevronRight, Briefcase, Plus } from 'lucide-react';
 import MapComponent from '../components/MapComponent';
 import { AddEntityModal } from '../components/AddEntityModal';
+import { AuditVendorModal } from '../components/AuditVendorModal';
 import { mockEntities } from '../data/mockData';
 import type { GeoEntity, EntityType } from '../types';
 
@@ -14,6 +15,9 @@ const MapDashboard = () => {
   const [entities, setEntities] = useState<GeoEntity[]>(mockEntities);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedLocation, setSelectedLocation] = useState<{lat: number, lng: number} | null>(null);
+  
+  const [isAuditModalOpen, setIsAuditModalOpen] = useState(false);
+  const [selectedVendorForAudit, setSelectedVendorForAudit] = useState<GeoEntity | null>(null);
 
   const filteredEntities = useMemo(() => {
     return entities.filter(entity => {
@@ -48,6 +52,28 @@ const MapDashboard = () => {
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setSelectedLocation(null);
+  };
+
+  const handleAuditClick = (vendor: GeoEntity) => {
+    setSelectedVendorForAudit(vendor);
+    setIsAuditModalOpen(true);
+  };
+
+  const handleAuditSubmit = (vendorId: string, results: any) => {
+    console.log(`Audit submitted for vendor ${vendorId}:`, results);
+    
+    const scoredIds = Object.keys(results).filter(id => results[id] !== null && results[id] !== 'na');
+    let score = 0;
+    if (scoredIds.length > 0) {
+      const passed = scoredIds.filter(id => results[id] === 'pass').length;
+      score = Math.round((passed / scoredIds.length) * 100);
+    }
+    
+    setEntities(prev => prev.map(entity => 
+      entity.id === vendorId ? { ...entity, auditScore: score } : entity
+    ));
+    
+    setIsAuditModalOpen(false);
   };
 
   return (
@@ -149,7 +175,13 @@ const MapDashboard = () => {
                   Aktif
                 </span>
                 <span className="font-bold text-dark-900 text-right max-w-[150px] truncate">
-                  {entity.commodities?.join(', ')}
+                  {entity.type === 'vendor' && entity.auditScore !== undefined ? (
+                    <span className={`${entity.auditScore >= 80 ? 'text-green-600' : entity.auditScore >= 60 ? 'text-amber-600' : 'text-red-600'}`}>
+                       Skor Audit: {entity.auditScore}%
+                    </span>
+                  ) : (
+                    entity.commodities?.join(', ')
+                  )}
                 </span>
               </div>
             </motion.div>
@@ -171,6 +203,7 @@ const MapDashboard = () => {
              center={mapCenter} 
              zoom={mapZoom} 
              onMapClick={handleMapClick}
+             onAuditClick={handleAuditClick}
            />
         </div>
       </div>
@@ -180,6 +213,13 @@ const MapDashboard = () => {
         onClose={handleCloseModal} 
         onAdd={handleAddEntity}
         initialLocation={selectedLocation}
+      />
+      
+      <AuditVendorModal 
+        isOpen={isAuditModalOpen}
+        onClose={() => setIsAuditModalOpen(false)}
+        vendor={selectedVendorForAudit}
+        onSubmit={handleAuditSubmit}
       />
     </div>
   );

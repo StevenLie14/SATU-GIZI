@@ -1,10 +1,18 @@
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
-import type { MapComponentProps } from '../types';
+import type { GeoEntity } from '../types';
 import { MapUpdater, MapClickListener } from './MapHelper';
-import { ChefHat, School, MapPin, Briefcase } from 'lucide-react';
+import { ChefHat, School, MapPin, Briefcase, ClipboardCheck, ShieldAlert } from 'lucide-react';
 import { schoolIcon, kitchenIcon, vendorIcon } from '../utils/mapIcons';
 
-export const MapComponent = ({ entities, center, zoom, onMapClick }: MapComponentProps) => {
+export interface MapComponentProps {
+  entities: GeoEntity[];
+  center: [number, number];
+  zoom: number;
+  onMapClick?: (lat: number, lng: number) => void;
+  onAuditClick?: (entity: GeoEntity) => void;
+}
+
+export const MapComponent = ({ entities, center, zoom, onMapClick, onAuditClick }: MapComponentProps) => {
   return (
     <div className="w-full h-full rounded-2xl overflow-hidden shadow-inner isolate z-0">
       <MapContainer 
@@ -61,16 +69,45 @@ export const MapComponent = ({ entities, center, zoom, onMapClick }: MapComponen
                     </span>
                   </div>
 
-                  {(entity.type === 'kitchen' || entity.type === 'vendor') && entity.rating && (
+                  {entity.type === 'kitchen' && entity.rating && (
                      <div className="flex items-center gap-1 text-amber-500">
                         <span className="text-xs font-bold">{entity.rating}</span>
                         <span>★</span>
-                        <span className="text-gray-400 text-[10px] ml-1">Rating {entity.type === 'kitchen' ? 'Higiene' : 'Kemitraan'}</span>
+                        <span className="text-gray-400 text-[10px] ml-1">Rating Higiene</span>
+                     </div>
+                  )}
+                  {entity.type === 'vendor' && (
+                     <div className="flex flex-col gap-1">
+                        {entity.rating && (
+                          <div className="flex items-center gap-1 text-amber-500">
+                             <span className="text-xs font-bold">{entity.rating}</span>
+                             <span>★</span>
+                             <span className="text-gray-400 text-[10px] ml-1">Rating Kemitraan</span>
+                          </div>
+                        )}
+                        {entity.auditScore !== undefined && (
+                          <div className={`flex items-center gap-1 ${entity.auditScore >= 80 ? 'text-green-600' : entity.auditScore >= 60 ? 'text-amber-500' : 'text-red-500'}`}>
+                             <ShieldAlert className="w-3.5 h-3.5" />
+                             <span className="text-xs font-bold">{entity.auditScore}%</span>
+                             <span className="text-gray-400 text-[10px] ml-1">Kepatuhan Audit</span>
+                          </div>
+                        )}
                      </div>
                   )}
 
-                  <div className="pt-2 mt-2 border-t border-gray-100">
-                    <button className={`w-full py-1.5 rounded text-white font-medium transition-colors ${
+                  <div className="pt-2 mt-2 border-t border-gray-100 flex gap-2">
+                    {entity.type === 'vendor' && onAuditClick && (
+                       <button 
+                         onClick={() => onAuditClick(entity)}
+                         className="flex-1 py-1.5 rounded bg-brand-50 text-brand-700 font-medium hover:bg-brand-100 transition-colors flex items-center justify-center gap-1.5 border border-brand-200"
+                         title="Mulai Audit Berdasarkan Standar ISO"
+                       >
+                         <ClipboardCheck className="w-3.5 h-3.5" /> Audit
+                       </button>
+                    )}
+                    <button className={`py-1.5 rounded text-white font-medium transition-colors ${
+                      entity.type === 'vendor' ? 'flex-[2]' : 'w-full'
+                    } ${
                       entity.type === 'school' ? 'bg-blue-600 hover:bg-blue-700' : 
                       entity.type === 'kitchen' ? 'bg-brand-600 hover:bg-brand-700' :
                       'bg-amber-600 hover:bg-amber-700'
