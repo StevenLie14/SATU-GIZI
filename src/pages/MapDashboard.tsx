@@ -13,6 +13,7 @@ const MapDashboard = () => {
   const [mapZoom, setMapZoom] = useState(12);
   const [entities, setEntities] = useState<GeoEntity[]>(mockEntities);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedLocation, setSelectedLocation] = useState<{lat: number, lng: number} | null>(null);
 
   const filteredEntities = useMemo(() => {
     return entities.filter(entity => {
@@ -23,7 +24,7 @@ const MapDashboard = () => {
                           (entity.type === 'vendor' && entity.commodities?.some(c => c.toLowerCase().includes(term)));
       return matchType && matchSearch;
     });
-  }, [filterType, searchQuery]);
+  }, [entities, filterType, searchQuery]);
 
   const stats = useMemo(() => ({
     totalVendors: filteredEntities.filter(e => e.type === 'vendor').length,
@@ -37,6 +38,16 @@ const MapDashboard = () => {
   const handleAddEntity = (newEntity: GeoEntity) => {
     setEntities([newEntity, ...entities]);
     focusRegion(newEntity.lat, newEntity.lng, 15);
+  };
+
+  const handleMapClick = (lat: number, lng: number) => {
+    setSelectedLocation({ lat, lng });
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedLocation(null);
   };
 
   return (
@@ -55,7 +66,7 @@ const MapDashboard = () => {
               Navigasi Sebaran
             </h2>
             <button 
-              onClick={() => setIsModalOpen(true)}
+              onClick={() => { setSelectedLocation(null); setIsModalOpen(true); }}
               className="p-1.5 bg-brand-50 text-brand-600 hover:bg-brand-100 rounded-lg transition-colors group"
               title="Tambah Titik Baru"
             >
@@ -155,14 +166,20 @@ const MapDashboard = () => {
 
       <div className="flex-1 relative bg-gray-100">
         <div className="absolute inset-0 p-4 pb-8 md:p-6 lg:p-8">
-           <MapComponent entities={filteredEntities} center={mapCenter} zoom={mapZoom} />
+           <MapComponent 
+             entities={filteredEntities} 
+             center={mapCenter} 
+             zoom={mapZoom} 
+             onMapClick={handleMapClick}
+           />
         </div>
       </div>
       
       <AddEntityModal 
         isOpen={isModalOpen} 
-        onClose={() => setIsModalOpen(false)} 
-        onAdd={handleAddEntity} 
+        onClose={handleCloseModal} 
+        onAdd={handleAddEntity}
+        initialLocation={selectedLocation}
       />
     </div>
   );

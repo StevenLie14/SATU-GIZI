@@ -1,4 +1,4 @@
-export type EntityType = "school" | "kitchen" | "vendor";
+export type EntityType = "vendor";
 
 export interface GeoEntity {
   id: string;
@@ -11,5 +11,12 @@ export interface GeoEntity {
   status: "active" | "pending" | "inactive";
   rating?: number;
   contact?: string;
-  commodities?: string[]; // Specifically for vendors (e.g. ['Sayuran', 'Beras'])
+  commodities?: string[];
+}
+
+export interface AddEntityModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onAdd: (entity: GeoEntity) => void;
+  initialLocation?: { lat: number; lng: number } | null;
 }

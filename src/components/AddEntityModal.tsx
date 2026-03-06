@@ -1,15 +1,11 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, MapPin } from 'lucide-react';
-import type { GeoEntity, EntityType } from '../types';
+import type { GeoEntity, EntityType, AddEntityModalProps } from '../types';
 
-interface AddEntityModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  onAdd: (entity: GeoEntity) => void;
-}
 
-export const AddEntityModal = ({ isOpen, onClose, onAdd }: AddEntityModalProps) => {
+
+export const AddEntityModal = ({ isOpen, onClose, onAdd, initialLocation }: AddEntityModalProps) => {
   const [formData, setFormData] = useState({
     name: '',
     type: 'vendor' as EntityType,
@@ -19,6 +15,20 @@ export const AddEntityModal = ({ isOpen, onClose, onAdd }: AddEntityModalProps) 
     commodities: '',
     status: 'active' as 'active' | 'inactive' | 'pending',
   });
+
+  useEffect(() => {
+    if (isOpen) {
+      setFormData({
+        name: '',
+        type: 'vendor',
+        address: '',
+        lat: initialLocation ? initialLocation.lat.toString() : '',
+        lng: initialLocation ? initialLocation.lng.toString() : '',
+        commodities: '',
+        status: 'active',
+      });
+    }
+  }, [isOpen, initialLocation]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

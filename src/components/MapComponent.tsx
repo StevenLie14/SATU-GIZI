@@ -1,26 +1,10 @@
-import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
-import type { GeoEntity } from '../types';
-import { useEffect } from 'react';
+import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import type { MapComponentProps } from '../types';
+import { MapUpdater, MapClickListener } from './MapHelper';
 import { ChefHat, School, MapPin, Briefcase } from 'lucide-react';
 import { schoolIcon, kitchenIcon, vendorIcon } from '../utils/mapIcons';
 
-interface MapComponentProps {
-  entities: GeoEntity[];
-  center: [number, number];
-  zoom: number;
-}
-
-const MapUpdater = ({ center, zoom }: { center: [number, number], zoom: number }) => {
-  const map = useMap();
-  useEffect(() => {
-    map.flyTo(center, zoom, { duration: 1.5 });
-  }, [center, zoom, map]);
-  return null;
-};
-
-
-
-export const MapComponent = ({ entities, center, zoom }: MapComponentProps) => {
+export const MapComponent = ({ entities, center, zoom, onMapClick }: MapComponentProps) => {
   return (
     <div className="w-full h-full rounded-2xl overflow-hidden shadow-inner isolate z-0">
       <MapContainer 
@@ -31,6 +15,7 @@ export const MapComponent = ({ entities, center, zoom }: MapComponentProps) => {
         zoomControl={false}
       >
         <MapUpdater center={center} zoom={zoom} />
+        <MapClickListener onMapClick={onMapClick} />
         
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
