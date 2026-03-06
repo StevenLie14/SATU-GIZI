@@ -2,6 +2,8 @@ import { Routes, Route } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import LandingPage from './pages/LandingPage';
 import MapDashboard from './pages/MapDashboard';
+import LoginPage from './pages/LoginPage';
+import RegisterPage from './pages/RegisterPage';
 import Footer from './components/Footer';
 
 function App() {
@@ -12,6 +14,8 @@ function App() {
         <Routes>
           <Route path="/" element={<LandingPage />} />
           <Route path="/map" element={<MapDashboard />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
         </Routes>
       </main>
       <Footer />

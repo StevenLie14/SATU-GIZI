@@ -68,13 +68,12 @@ const Navbar = () => {
               );
             })}
             
-            <motion.button 
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
+            <Link 
+              to="/login"
               className="ml-4 px-6 py-2.5 bg-dark-900 text-white text-sm font-medium rounded-full hover:bg-dark-800 transition-all shadow-md hover:shadow-lg"
             >
               Masuk / Daftar
-            </motion.button>
+            </Link>
           </div>
 
           <div className="flex items-center md:hidden">
@@ -110,9 +109,13 @@ const Navbar = () => {
             </Link>
           ))}
           <div className="pt-4 px-4">
-             <button className="w-full py-3 bg-dark-900 text-white font-medium rounded-xl hover:bg-dark-800 transition-all">
+             <Link 
+               to="/login"
+               onClick={() => setIsOpen(false)}
+               className="block text-center w-full py-3 bg-dark-900 text-white font-medium rounded-xl hover:bg-dark-800 transition-all"
+             >
                 Masuk / Daftar
-             </button>
+             </Link>
           </div>
         </div>
       </motion.div>
