@@ -1,40 +1,112 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, MapPin } from 'lucide-react';
+import { X, MapPin, Loader2 } from 'lucide-react';
+import { MapContainer, TileLayer, Marker, useMapEvents, useMap } from 'react-leaflet';
 import type { GeoEntity, EntityType, AddEntityModalProps } from '../types';
+import L from 'leaflet';
+
+const pinIcon = L.divIcon({
+  className: 'custom-pin-icon',
+  html: `<div class="w-8 h-8 -ml-4 -mt-8 flex items-center justify-center text-brand-600 drop-shadow-md pb-8">
+          <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="currentColor" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3" fill="white"/></svg>
+         </div>`,
+  iconSize: [32, 32],
+  iconAnchor: [16, 32],
+});
+
+import type { LeafletMouseEvent, DragEndEvent } from 'leaflet';
+
+function LocationPicker({ position, setPosition, setAddress, setIsGeocoding }: {
+  position: L.LatLng | null;
+  setPosition: (pos: L.LatLng) => void;
+  setAddress: (addr: string) => void;
+  setIsGeocoding: (val: boolean) => void;
+}) {
+  const map = useMap();
+
+  useMapEvents({
+    click(e: LeafletMouseEvent) {
+      setPosition(e.latlng);
+      map.flyTo(e.latlng, map.getZoom());
+      reverseGeocode(e.latlng.lat, e.latlng.lng, setAddress, setIsGeocoding);
+    },
+  });
+
+  return position === null ? null : (
+    <Marker 
+      position={position} 
+      icon={pinIcon as any}
+      draggable={true}
+      eventHandlers={{
+        dragend: (e: DragEndEvent) => {
+          const marker = e.target;
+          const pos = marker.getLatLng();
+          setPosition(pos);
+          map.flyTo(pos, map.getZoom());
+          reverseGeocode(pos.lat, pos.lng, setAddress, setIsGeocoding);
+        },
+      }}
+    />
+  );
+}
+
+const reverseGeocode = async (lat: number, lng: number, setAddress: (addr: string) => void, setIsGeocoding: (val: boolean) => void) => {
+  setIsGeocoding(true);
+  try {
+    const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`);
+    const data = await res.json();
+    if (data && data.display_name) {
+      setAddress(data.display_name);
+    }
+  } catch (error) {
+    console.error("Geocoding error:", error);
+  } finally {
+    setIsGeocoding(false);
+  }
+};
 
 
 
 export const AddEntityModal = ({ isOpen, onClose, onAdd, initialLocation }: AddEntityModalProps) => {
+  const [isGeocoding, setIsGeocoding] = useState(false);
+  const [mapCenter, setMapCenter] = useState<L.LatLngExpression>(initialLocation || { lat: -6.200000, lng: 106.816666 });
+  const [pinPosition, setPinPosition] = useState<L.LatLng | null>(initialLocation ? L.latLng(initialLocation.lat, initialLocation.lng) : L.latLng(-6.200000, 106.816666));
+
   const [formData, setFormData] = useState({
     name: '',
     type: 'vendor' as EntityType,
     address: '',
-    lat: '',
-    lng: '',
     commodities: '',
     status: 'active' as 'active' | 'inactive' | 'pending',
   });
 
   useEffect(() => {
     if (isOpen) {
+      const startLat = initialLocation?.lat || -6.200000;
+      const startLng = initialLocation?.lng || 106.816666;
+      setMapCenter({ lat: startLat, lng: startLng });
+      setPinPosition(L.latLng(startLat, startLng));
+      
       setFormData({
         name: '',
         type: 'vendor',
         address: '',
-        lat: initialLocation ? initialLocation.lat.toString() : '',
-        lng: initialLocation ? initialLocation.lng.toString() : '',
         commodities: '',
         status: 'active',
       });
+      
+      // Auto-geocode initial location if available
+      if (initialLocation) {
+        reverseGeocode(startLat, startLng, (addr) => setFormData(prev => ({...prev, address: addr})), setIsGeocoding);
+      }
     }
   }, [isOpen, initialLocation]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.name || !formData.address || !formData.lat || !formData.lng) {
-      alert('Mohon isi semua field yang wajib.');
+    if (!formData.name || !formData.address || !pinPosition) {
+      alert('Mohon isi nama vendor dan pastikan lokasi telah dipilih di peta.');
       return;
     }
 
@@ -43,8 +115,8 @@ export const AddEntityModal = ({ isOpen, onClose, onAdd, initialLocation }: AddE
       name: formData.name,
       type: formData.type,
       address: formData.address,
-      lat: parseFloat(formData.lat),
-      lng: parseFloat(formData.lng),
+      lat: pinPosition.lat,
+      lng: pinPosition.lng,
       status: formData.status,
       commodities: formData.commodities.split(',').map(c => c.trim()).filter(Boolean),
       rating: 0,
@@ -56,8 +128,6 @@ export const AddEntityModal = ({ isOpen, onClose, onAdd, initialLocation }: AddE
       name: '',
       type: 'vendor',
       address: '',
-      lat: '',
-      lng: '',
       commodities: '',
       status: 'active',
     });
@@ -132,44 +202,53 @@ export const AddEntityModal = ({ isOpen, onClose, onAdd, initialLocation }: AddE
                 </div>
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Alamat *</label>
-                <textarea
-                  required
-                  rows={2}
-                  value={formData.address}
-                  onChange={e => setFormData({...formData, address: e.target.value})}
-                  className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 resize-none"
-                  placeholder="Alamat lengkap..."
-                />
-              </div>
+                <div className="md:col-span-2">
+                  <div className="flex justify-between items-end mb-2">
+                    <label className="block text-sm font-medium text-gray-700">
+                      Pilih Titik Lokasi *
+                    </label>
+                    <span className="text-xs text-gray-500">Geser pin biru atau klik peta</span>
+                  </div>
+                  
+                  <div className="h-[250px] w-full rounded-xl overflow-hidden border border-gray-200 mb-3 shadow-inner relative z-10">
+                    <MapContainer 
+                      center={mapCenter} 
+                      zoom={15} 
+                      style={{ height: '100%', width: '100%', zIndex: 10 }}
+                      zoomControl={false}
+                    >
+                      <TileLayer
+                        url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
+                        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; Carto'
+                      />
+                      <LocationPicker 
+                        position={pinPosition} 
+                        setPosition={setPinPosition} 
+                        setAddress={(addr: string) => setFormData(prev => ({...prev, address: addr}))} 
+                        setIsGeocoding={setIsGeocoding}
+                      />
+                    </MapContainer>
+                  </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Latitude *</label>
-                  <input
-                    type="number"
-                    step="any"
-                    required
-                    value={formData.lat}
-                    onChange={e => setFormData({...formData, lat: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 font-mono text-sm"
-                    placeholder="-6.200000"
-                  />
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Alamat Lengkap *
+                    {isGeocoding && <Loader2 className="w-3 h-3 inline ml-2 animate-spin text-brand-500" />}
+                  </label>
+                  <div className="relative">
+                    <MapPin className="absolute left-3 top-3 w-5 h-5 text-gray-400" />
+                    <textarea
+                      required
+                      value={formData.address}
+                      onChange={e => setFormData({...formData, address: e.target.value})}
+                      className="w-full pl-10 pr-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 min-h-[80px]"
+                      placeholder="Geser pin di peta untuk mengisi otomatis, atau ketik manual..."
+                    />
+                  </div>
+                  <div className="flex gap-4 mt-2 text-xs text-gray-500">
+                     <div>Lat: <span className="font-mono text-gray-700">{pinPosition?.lat.toFixed(6) || '-'}</span></div>
+                     <div>Lng: <span className="font-mono text-gray-700">{pinPosition?.lng.toFixed(6) || '-'}</span></div>
+                  </div>
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Longitude *</label>
-                  <input
-                    type="number"
-                    step="any"
-                    required
-                    value={formData.lng}
-                    onChange={e => setFormData({...formData, lng: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 font-mono text-sm"
-                    placeholder="106.816666"
-                  />
-                </div>
-              </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">

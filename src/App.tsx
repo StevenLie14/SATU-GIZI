@@ -4,11 +4,13 @@ import LandingPage from './pages/LandingPage';
 import MapDashboard from './pages/MapDashboard';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
+import AuditPage from './pages/AuditPage';
 import Footer from './components/Footer';
+import { ChatBot } from './components/ChatBot';
 
 function App() {
   return (
-    <div className="flex flex-col min-h-screen bg-gray-50 text-dark-900 font-sans">
+    <div className="min-h-screen font-sans flex flex-col">
       <Navbar />
       <main className="flex-grow">
         <Routes>
@@ -16,9 +18,11 @@ function App() {
           <Route path="/map" element={<MapDashboard />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
+          <Route path="/audit" element={<AuditPage />} />
         </Routes>
       </main>
       <Footer />
+      <ChatBot />
     </div>
   );
 }

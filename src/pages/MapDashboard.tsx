@@ -1,13 +1,14 @@
 import { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { Filter, Search, Map as MapIcon, ChevronRight, Briefcase, Plus } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import MapComponent from '../components/MapComponent';
 import { AddEntityModal } from '../components/AddEntityModal';
-import { AuditVendorModal } from '../components/AuditVendorModal';
 import { mockEntities } from '../data/mockData';
 import type { GeoEntity, EntityType } from '../types';
 
 const MapDashboard = () => {
+  const navigate = useNavigate();
   const [filterType, setFilterType] = useState<EntityType | 'all'>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [mapCenter, setMapCenter] = useState<[number, number]>([-6.200000, 106.816666]); // Default Jakarta
@@ -15,9 +16,6 @@ const MapDashboard = () => {
   const [entities, setEntities] = useState<GeoEntity[]>(mockEntities);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedLocation, setSelectedLocation] = useState<{lat: number, lng: number} | null>(null);
-  
-  const [isAuditModalOpen, setIsAuditModalOpen] = useState(false);
-  const [selectedVendorForAudit, setSelectedVendorForAudit] = useState<GeoEntity | null>(null);
 
   const filteredEntities = useMemo(() => {
     return entities.filter(entity => {
@@ -54,26 +52,8 @@ const MapDashboard = () => {
     setSelectedLocation(null);
   };
 
-  const handleAuditClick = (vendor: GeoEntity) => {
-    setSelectedVendorForAudit(vendor);
-    setIsAuditModalOpen(true);
-  };
-
-  const handleAuditSubmit = (vendorId: string, results: any) => {
-    console.log(`Audit submitted for vendor ${vendorId}:`, results);
-    
-    const scoredIds = Object.keys(results).filter(id => results[id] !== null && results[id] !== 'na');
-    let score = 0;
-    if (scoredIds.length > 0) {
-      const passed = scoredIds.filter(id => results[id] === 'pass').length;
-      score = Math.round((passed / scoredIds.length) * 100);
-    }
-    
-    setEntities(prev => prev.map(entity => 
-      entity.id === vendorId ? { ...entity, auditScore: score } : entity
-    ));
-    
-    setIsAuditModalOpen(false);
+  const handleAuditClick = (_vendor: GeoEntity) => {
+    navigate('/audit');
   };
 
   return (
@@ -213,13 +193,6 @@ const MapDashboard = () => {
         onClose={handleCloseModal} 
         onAdd={handleAddEntity}
         initialLocation={selectedLocation}
-      />
-      
-      <AuditVendorModal 
-        isOpen={isAuditModalOpen}
-        onClose={() => setIsAuditModalOpen(false)}
-        vendor={selectedVendorForAudit}
-        onSubmit={handleAuditSubmit}
       />
     </div>
   );
