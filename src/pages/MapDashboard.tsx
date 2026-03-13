@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { Filter, Search, Map as MapIcon, ChevronRight, Briefcase, Plus } from 'lucide-react';
+import { Filter, Search, Map as MapIcon, ChevronRight, Briefcase, Plus, ChefHat, School } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import MapComponent from '../components/MapComponent';
 import { AddEntityModal } from '../components/AddEntityModal';
@@ -30,6 +30,8 @@ const MapDashboard = () => {
 
   const stats = useMemo(() => ({
     totalVendors: filteredEntities.filter(e => e.type === 'vendor').length,
+    totalSchools: filteredEntities.filter(e => e.type === 'school').length,
+    totalKitchens: filteredEntities.filter(e => e.type === 'kitchen').length,
   }), [filteredEntities]);
 
   const focusRegion = (lat: number, lng: number, zoom: number = 13) => {
@@ -79,7 +81,7 @@ const MapDashboard = () => {
               <Plus className="w-5 h-5 group-hover:scale-110 transition-transform" />
             </button>
           </div>
-          <p className="text-sm text-gray-500 mb-6">Pantau kapasitas dan komoditas Vendor Pemasok di seluruh wilayah.</p>
+          <p className="text-sm text-gray-500 mb-6">Pantau sebaran Sekolah, Dapur Pusat, dan Vendor Pemasok di seluruh wilayah.</p>
 
           <div className="relative mb-6">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -88,18 +90,44 @@ const MapDashboard = () => {
             <input
               type="text"
               className="block w-full pl-10 pr-3 py-2.5 border border-gray-200 rounded-xl leading-5 bg-gray-50 placeholder-gray-400 focus:outline-none focus:bg-white focus:ring-2 focus:ring-brand-500 focus:border-brand-500 sm:text-sm transition-all"
-              placeholder="Cari nama vendor, lokasi, atau komoditas..."
+              placeholder="Cari nama, lokasi, atau komoditas..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
 
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
             <button
               onClick={() => setFilterType('all')}
-              className={`flex-1 overflow-hidden py-2 text-xs font-medium rounded-lg border transition-all flex justify-center items-center gap-1 bg-amber-50 text-amber-700 border-amber-200`}
+              className={`px-3 py-2 text-xs font-medium rounded-lg border transition-all flex items-center gap-1 ${
+                filterType === 'all' ? 'bg-brand-50 text-brand-700 border-brand-200' : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
+              }`}
             >
-              <Briefcase className="w-4 h-4" /> Semua Vendor
+              Semua
+            </button>
+            <button
+              onClick={() => setFilterType('school')}
+              className={`px-3 py-2 text-xs font-medium rounded-lg border transition-all flex items-center gap-1 ${
+                filterType === 'school' ? 'bg-blue-50 text-blue-700 border-blue-200' : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
+              }`}
+            >
+              <School className="w-4 h-4" /> Sekolah
+            </button>
+            <button
+              onClick={() => setFilterType('kitchen')}
+              className={`px-3 py-2 text-xs font-medium rounded-lg border transition-all flex items-center gap-1 ${
+                filterType === 'kitchen' ? 'bg-brand-50 text-brand-700 border-brand-200' : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
+              }`}
+            >
+              <ChefHat className="w-4 h-4" /> Dapur
+            </button>
+            <button
+              onClick={() => setFilterType('vendor')}
+              className={`px-3 py-2 text-xs font-medium rounded-lg border transition-all flex items-center gap-1 ${
+                filterType === 'vendor' ? 'bg-amber-50 text-amber-700 border-amber-200' : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
+              }`}
+            >
+              <Briefcase className="w-4 h-4" /> Vendor
             </button>
           </div>
         </div>
@@ -127,6 +155,8 @@ const MapDashboard = () => {
           <div className="flex justify-between items-center mb-2 px-2">
             <span className="text-xs font-medium text-gray-500">Menampilkan {filteredEntities.length} hasil</span>
             <div className="text-[11px] font-medium flex gap-2 flex-wrap justify-end">
+              {stats.totalSchools > 0 && <span className="text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded">{stats.totalSchools} Sekolah</span>}
+              {stats.totalKitchens > 0 && <span className="text-brand-600 bg-brand-50 px-1.5 py-0.5 rounded">{stats.totalKitchens} Dapur</span>}
               {stats.totalVendors > 0 && <span className="text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded">{stats.totalVendors} Vendor</span>}
             </div>
           </div>
@@ -136,13 +166,23 @@ const MapDashboard = () => {
               key={entity.id}
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              className={`p-4 rounded-xl border transition-all cursor-pointer hover:shadow-md bg-white hover:border-amber-300 border-gray-100`}
+              className={`p-4 rounded-xl border transition-all cursor-pointer hover:shadow-md bg-white ${
+                entity.type === 'school' ? 'hover:border-blue-300' :
+                entity.type === 'kitchen' ? 'hover:border-brand-300' :
+                'hover:border-amber-300'
+              } border-gray-100`}
               onClick={() => focusRegion(entity.lat, entity.lng, 15)}
             >
               <div className="flex justify-between items-start mb-2">
                 <div className="flex items-center gap-2">
-                   <div className={`p-1.5 rounded-lg bg-amber-50 text-amber-600`}>
-                      <Briefcase size={16}/>
+                   <div className={`p-1.5 rounded-lg ${
+                     entity.type === 'school' ? 'bg-blue-50 text-blue-600' :
+                     entity.type === 'kitchen' ? 'bg-brand-50 text-brand-600' :
+                     'bg-amber-50 text-amber-600'
+                   }`}>
+                      {entity.type === 'school' && <School size={16}/>}
+                      {entity.type === 'kitchen' && <ChefHat size={16}/>}
+                      {entity.type === 'vendor' && <Briefcase size={16}/>}
                    </div>
                    <h4 className="font-semibold text-dark-900 text-sm">{entity.name}</h4>
                 </div>
@@ -155,12 +195,16 @@ const MapDashboard = () => {
                   Aktif
                 </span>
                 <span className="font-bold text-dark-900 text-right max-w-[150px] truncate">
-                  {entity.type === 'vendor' && entity.auditScore !== undefined ? (
-                    <span className={`${entity.auditScore >= 80 ? 'text-green-600' : entity.auditScore >= 60 ? 'text-amber-600' : 'text-red-600'}`}>
-                       Skor Audit: {entity.auditScore}%
-                    </span>
+                  {entity.type === 'vendor' ? (
+                    entity.auditScore !== undefined ? (
+                      <span className={`${entity.auditScore >= 80 ? 'text-green-600' : entity.auditScore >= 60 ? 'text-amber-600' : 'text-red-600'}`}>
+                         Skor Audit: {entity.auditScore}%
+                      </span>
+                    ) : (
+                      entity.commodities?.join(', ')
+                    )
                   ) : (
-                    entity.commodities?.join(', ')
+                    `${entity.capacity?.toLocaleString()} ${entity.type === 'school' ? 'Anak' : 'Porsi'}`
                   )}
                 </span>
               </div>

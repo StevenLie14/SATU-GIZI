@@ -74,9 +74,10 @@ export const AddEntityModal = ({ isOpen, onClose, onAdd, initialLocation }: AddE
 
   const [formData, setFormData] = useState({
     name: '',
-    type: 'vendor' as EntityType,
+    type: 'school' as EntityType,
     address: '',
     commodities: '',
+    capacity: '',
     status: 'active' as 'active' | 'inactive' | 'pending',
   });
 
@@ -89,9 +90,10 @@ export const AddEntityModal = ({ isOpen, onClose, onAdd, initialLocation }: AddE
       
       setFormData({
         name: '',
-        type: 'vendor',
+        type: 'school',
         address: '',
         commodities: '',
+        capacity: '',
         status: 'active',
       });
       
@@ -106,7 +108,7 @@ export const AddEntityModal = ({ isOpen, onClose, onAdd, initialLocation }: AddE
     e.preventDefault();
     
     if (!formData.name || !formData.address || !pinPosition) {
-      alert('Mohon isi nama vendor dan pastikan lokasi telah dipilih di peta.');
+      alert('Mohon isi nama dan pastikan lokasi telah dipilih di peta.');
       return;
     }
 
@@ -118,7 +120,8 @@ export const AddEntityModal = ({ isOpen, onClose, onAdd, initialLocation }: AddE
       lat: pinPosition.lat,
       lng: pinPosition.lng,
       status: formData.status,
-      commodities: formData.commodities.split(',').map(c => c.trim()).filter(Boolean),
+      capacity: (formData.type === 'school' || formData.type === 'kitchen') ? parseInt(formData.capacity) : undefined,
+      commodities: formData.type === 'vendor' ? formData.commodities.split(',').map(c => c.trim()).filter(Boolean) : undefined,
       rating: 0,
     };
 
@@ -126,9 +129,10 @@ export const AddEntityModal = ({ isOpen, onClose, onAdd, initialLocation }: AddE
     onClose();
     setFormData({
       name: '',
-      type: 'vendor',
+      type: 'school',
       address: '',
       commodities: '',
+      capacity: '',
       status: 'active',
     });
   };
@@ -179,14 +183,16 @@ export const AddEntityModal = ({ isOpen, onClose, onAdd, initialLocation }: AddE
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Tipe</label>
-                  <input
-                    type="text"
-                    value="Vendor"
-                    readOnly
-                    disabled
-                    className="w-full px-3 py-2 border border-gray-200 rounded-lg bg-gray-100 text-gray-600 cursor-not-allowed focus:outline-none"
-                  />
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Tipe *</label>
+                  <select
+                    value={formData.type}
+                    onChange={e => setFormData({...formData, type: e.target.value as EntityType})}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500"
+                  >
+                    <option value="school">Sekolah</option>
+                    <option value="kitchen">Dapur Pusat</option>
+                    <option value="vendor">Vendor Pemasok</option>
+                  </select>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
@@ -250,18 +256,36 @@ export const AddEntityModal = ({ isOpen, onClose, onAdd, initialLocation }: AddE
                   </div>
                 </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Komoditas (pisahkan dengan koma)
-                </label>
-                <input
-                  type="text"
-                  value={formData.commodities}
-                  onChange={e => setFormData({...formData, commodities: e.target.value})}
-                  className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500"
-                  placeholder="Contoh: Beras, Sayuran, Daging Ayam"
-                />
-              </div>
+              {(formData.type === 'school' || formData.type === 'kitchen') && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    {formData.type === 'school' ? 'Jumlah Siswa *' : 'Kapasitas Porsi/Hari *'}
+                  </label>
+                  <input
+                    type="number"
+                    required
+                    value={formData.capacity}
+                    onChange={e => setFormData({...formData, capacity: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500"
+                    placeholder={formData.type === 'school' ? "Contoh: 500" : "Contoh: 2000"}
+                  />
+                </div>
+              )}
+
+              {formData.type === 'vendor' && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Komoditas (pisahkan dengan koma)
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.commodities}
+                    onChange={e => setFormData({...formData, commodities: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500"
+                    placeholder="Contoh: Beras, Sayuran, Daging Ayam"
+                  />
+                </div>
+              )}
 
               <div className="pt-4 mt-4 border-t border-gray-100 flex justify-end gap-3">
                 <button
