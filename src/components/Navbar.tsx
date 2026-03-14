@@ -1,6 +1,6 @@
 import { Link, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Map, Home, Menu, X, Utensils } from 'lucide-react';
+import { Map, Home, Menu, X, Utensils, TrendingUp, Handshake } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
 const Navbar = () => {
@@ -19,6 +19,8 @@ const Navbar = () => {
   const navLinks = [
     { name: 'Home', path: '/', icon: Home },
     { name: 'Peta Sebaran', path: '/map', icon: Map },
+    { name: 'Forecast', path: '/forecast', icon: TrendingUp },
+    { name: 'Matchmaking', path: '/matchmaking', icon: Handshake },
   ];
 
   return (
