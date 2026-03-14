@@ -2,7 +2,6 @@ import { motion } from 'framer-motion';
 import { ArrowRight, ChefHat, Map, Briefcase, CheckCircle2, Factory, School } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { fadeIn, staggerContainer } from '../utils/animations';
-
 const LandingPage = () => {
   return (
     <div className="bg-white overflow-hidden pb-20">
@@ -64,7 +63,7 @@ const LandingPage = () => {
                   <div className="flex-1 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] bg-brand-50/30 relative">
                      <motion.div 
                         animate={{ y: [0, -10, 0] }} 
-                        transition={{ repeat: Infinity, duration: 3, ease: "easeInOut" }}
+                        transition={{ repeat: Infinity, duration: 3, ease: "easeInOut" as const }}
                         className="absolute top-1/4 left-1/4 bg-white p-2 rounded-xl shadow-lg flex items-center gap-2"
                       >
                         <div className="bg-brand-100 p-1.5 rounded-lg"><ChefHat className="w-4 h-4 text-brand-600"/></div>
@@ -73,7 +72,7 @@ const LandingPage = () => {
                      
                      <motion.div 
                         animate={{ y: [0, -8, 0] }} 
-                        transition={{ repeat: Infinity, duration: 4, delay: 1, ease: "easeInOut" }}
+                        transition={{ repeat: Infinity, duration: 4, delay: 1, ease: "easeInOut" as const }}
                         className="absolute bottom-1/3 right-1/4 bg-white p-2 rounded-xl shadow-lg flex items-center gap-2 border-l-2 border-blue-500"
                       >
                         <div className="bg-blue-100 p-1.5 rounded-lg"><School className="w-4 h-4 text-blue-600"/></div>

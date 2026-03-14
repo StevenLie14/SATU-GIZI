@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, ClipboardCheck, ArrowRight, Save, ShieldAlert, CheckCircle2, ChevronDown, ChevronUp } from 'lucide-react';
+import { X, ClipboardCheck, Save, ShieldAlert, CheckCircle2, ChevronDown, ChevronUp } from 'lucide-react';
 import type { GeoEntity } from '../types';
 
 interface AuditVendorModalProps {

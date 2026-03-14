@@ -1,6 +1,6 @@
 import { Link, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Map, Home, Menu, X, Utensils, TrendingUp, Handshake } from 'lucide-react';
+import { Map, Home, Menu, X, TrendingUp, Handshake } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
 const Navbar = () => {
