@@ -13,6 +13,10 @@ export interface GeoEntity {
   contact?: string;
   commodities?: string[];
   auditScore?: number;
+  image?: string;
+  description?: string;
+  phone?: string;
+  website?: string;
 }
 
 export interface AddEntityModalProps {

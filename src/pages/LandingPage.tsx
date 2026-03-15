@@ -103,10 +103,10 @@ const LandingPage = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 divide-x divide-gray-100">
             {[
-              { label: 'lorem ipsum', value: 'angka', icon: Factory, color: 'text-brand-600', bg: 'bg-brand-50' },
-              { label: 'lorem ipsum', value: 'angka', icon: School, color: 'text-blue-600', bg: 'bg-blue-50' },
-              { label: 'lorem ipsum', value: 'angka', icon: CheckCircle2, color: 'text-amber-500', bg: 'bg-amber-50' },
-              { label: 'lorem ipsum', value: 'angka', icon: Briefcase, color: 'text-indigo-600', bg: 'bg-indigo-50' },
+              { label: 'Vendor Pemasok', value: '1.2k+', icon: Factory, color: 'text-brand-600', bg: 'bg-brand-50' },
+              { label: 'Sekolah Terdaftar', value: '450+', icon: School, color: 'text-blue-600', bg: 'bg-blue-50' },
+              { label: 'Dapur Higienis', value: '85+', icon: CheckCircle2, color: 'text-emerald-500', bg: 'bg-emerald-50' },
+              { label: 'UMKM Mandiri', value: '320+', icon: Briefcase, color: 'text-indigo-600', bg: 'bg-indigo-50' },
             ].map((stat, i) => (
               <motion.div 
                 key={i}
@@ -131,8 +131,8 @@ const LandingPage = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-3xl mx-auto mb-16">
             <h2 className="text-brand-600 font-semibold tracking-wide uppercase text-sm mb-3">Tiga Pilar Utama</h2>
-            <h3 className="text-3xl md:text-4xl font-bold text-dark-900 mb-4">Lorem ipsum dolor sit amet.</h3>
-            <p className="text-gray-600 text-lg">Lorem, ipsum dolor sit amet consectetur adipisicing elit. Eveniet, fugit.</p>
+            <h3 className="text-3xl md:text-4xl font-bold text-dark-900 mb-4">Infrastruktur Digital untuk Ketahanan Pangan Nasional</h3>
+            <p className="text-gray-600 text-lg">Solusi teknologi cerdas yang mengintegrasikan ekosistem produksi dan distribusi makanan bergizi secara efisien dan transparan.</p>
           </div>
 
           <div className="grid md:grid-cols-3 gap-8">
@@ -145,10 +145,10 @@ const LandingPage = () => {
               </div>
               <h4 className="text-xl font-bold text-dark-900 mb-3">Perizinan & Pengawasan</h4>
               <p className="text-gray-600 leading-relaxed mb-6">
-                Lorem, ipsum dolor sit amet consectetur adipisicing elit. Dolorum laborum dicta asperiores illo quas necessitatibus?
+                Standarisasi mutu vendor melalui audit digital yang ketat. Menggunakan teknologi Blockchain untuk memastikan data kepatuhan tidak dapat dimanipulasi.
               </p>
               <ul className="space-y-2">
-                {['lorem ipsum dolor', 'lorem ipsum dolor', 'lorem ipsum dolor'].map((item, i) => (
+                {['Verifikasi Higienitas ISO', 'Sertifikasi Halal Terpadu', 'Rekaman Audit Blockchain'].map((item, i) => (
                   <li key={i} className="flex items-center gap-2 text-sm text-gray-600">
                     <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />
                     {item}
@@ -168,10 +168,10 @@ const LandingPage = () => {
                 </div>
                 <h4 className="text-xl font-bold text-dark-900 mb-3">Matching Demand-Supply</h4>
                 <p className="text-gray-600 leading-relaxed mb-6">
-                  Lorem ipsum dolor sit amet consectetur, adipisicing elit. Commodi iure repudiandae repellat doloremque, eius quibusdam!
+                  Menyeimbangkan kebutuhan gizi sekolah dengan kapasitas produksi dapur pusat secara real-time untuk mencegah kekurangan atau kelebihan stok.
                 </p>
                 <ul className="space-y-2">
-                  {['lorem ipsum dolor', 'lorem ipsum dolor', 'lorem ipsum dolor'].map((item, i) => (
+                  {['Prediksi Kebutuhan Wilayah', 'Optimasi Rute Distribusi', 'Dashboard Stok Terpusat'].map((item, i) => (
                     <li key={i} className="flex items-center gap-2 text-sm text-gray-600">
                       <div className="w-1.5 h-1.5 rounded-full bg-brand-500" />
                       {item}
@@ -190,10 +190,10 @@ const LandingPage = () => {
               </div>
               <h4 className="text-xl font-bold text-dark-900 mb-3">B2B Matchmaking</h4>
               <p className="text-gray-600 leading-relaxed mb-6">
-                Lorem ipsum dolor sit amet consectetur, adipisicing elit. Saepe harum deleniti mollitia est, cumque ex.
+                Menghubungkan unit pengolah makanan (Dapur) dengan pemasok bahan baku (Vendor) terdekat untuk menekan biaya logistik dan mendukung UMKM.
               </p>
               <ul className="space-y-2">
-                {['lorem ipsum dolor', 'lorem ipsum dolor', 'lorem ipsum dolor'].map((item, i) => (
+                {['Koneksi UMKM Lokal', 'Harga Bahan Baku Kompetitif', 'Logistik Jarak Pendek'].map((item, i) => (
                   <li key={i} className="flex items-center gap-2 text-sm text-gray-600">
                     <div className="w-1.5 h-1.5 rounded-full bg-amber-500" />
                     {item}

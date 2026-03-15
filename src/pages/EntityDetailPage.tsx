@@ -1,0 +1,226 @@
+import { useParams, useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import { 
+  ArrowLeft, MapPin, Phone, Globe, Star, ShieldCheck, 
+  ChefHat, School, Briefcase, Calendar, Users, Package, 
+  CheckCircle2, AlertCircle, Info, ExternalLink
+} from 'lucide-react';
+import { mockEntities } from '../data/mockData';
+import schoolImg from '../assets/school.jpg';
+import kitchenImg from '../assets/kitchen.jpg';
+import vendorImg from '../assets/vendor.jpg';
+
+const EntityDetailPage = () => {
+  const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const entity = mockEntities.find(e => e.id === id);
+
+  if (!entity) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center p-4">
+        <AlertCircle size={48} className="text-red-500 mb-4" />
+        <h1 className="text-2xl font-bold text-dark-900 mb-2">Entitas Tidak Ditemukan</h1>
+        <p className="text-gray-500 mb-6 text-center">Maaf, entitas yang Anda cari tidak tersedia di sistem kami.</p>
+        <button 
+          onClick={() => navigate('/map')}
+          className="px-6 py-2 bg-brand-600 text-white font-bold rounded-full hover:bg-brand-700 transition-all"
+        >
+          Kembali ke Peta
+        </button>
+      </div>
+    );
+  }
+
+  const isVendor = entity.type === 'vendor';
+  const isSchool = entity.type === 'school';
+  const isKitchen = entity.type === 'kitchen';
+
+  return (
+    <div className="min-h-screen bg-gray-50 pt-24 pb-20">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        
+        {/* Navigation & Header */}
+        <button 
+          onClick={() => navigate(-1)}
+          className="flex items-center gap-2 text-gray-500 hover:text-brand-600 font-medium transition-colors mb-8 group"
+        >
+          <ArrowLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
+          Kembali
+        </button>
+
+        <div className="grid lg:grid-cols-5 gap-10">
+          
+          {/* Left Column: Image & Basic Info */}
+          <div className="lg:col-span-2">
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="relative aspect-[4/3] rounded-3xl overflow-hidden shadow-xl border border-white mb-6"
+            >
+              <img 
+                src={entity.image || (isSchool ? schoolImg : isKitchen ? kitchenImg : vendorImg)} 
+                alt={entity.name}
+                className="w-full h-full object-cover"
+              />
+              <div className="absolute top-4 left-4">
+                <div className={`px-4 py-1.5 rounded-full text-xs font-bold shadow-lg flex items-center gap-2 ${
+                  isSchool ? 'bg-blue-600 text-white' : 
+                  isKitchen ? 'bg-brand-600 text-white' : 
+                  'bg-amber-500 text-white'
+                }`}>
+                  {isSchool && <School size={14} />}
+                  {isKitchen && <ChefHat size={14} />}
+                  {isVendor && <Briefcase size={14} />}
+                  {entity.type.toUpperCase()}
+                </div>
+              </div>
+            </motion.div>
+
+            <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 space-y-4">
+              <div className="flex items-start gap-4 p-3 hover:bg-gray-50 rounded-2xl transition-colors">
+                <div className="bg-gray-100 p-2.5 rounded-xl text-gray-500"><MapPin size={20} /></div>
+                <div>
+                  <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Lokasi</p>
+                  <p className="text-sm text-dark-900 font-medium">{entity.address}</p>
+                </div>
+              </div>
+              
+              <div className="flex items-start gap-4 p-3 hover:bg-gray-50 rounded-2xl transition-colors">
+                <div className="bg-gray-100 p-2.5 rounded-xl text-gray-500"><Phone size={20} /></div>
+                <div>
+                  <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Kontak</p>
+                  <p className="text-sm text-dark-900 font-medium">{entity.phone || "Belum Tersedia"}</p>
+                </div>
+              </div>
+
+              {entity.website && (
+                <div className="flex items-start gap-4 p-3 hover:bg-gray-50 rounded-2xl transition-colors">
+                  <div className="bg-gray-100 p-2.5 rounded-xl text-gray-500"><Globe size={20} /></div>
+                  <div>
+                    <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Website</p>
+                    <a href="#" className="text-sm text-brand-600 font-bold flex items-center gap-1">
+                      {entity.website} <ExternalLink size={12} />
+                    </a>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Right Column: Detailed Info */}
+          <div className="lg:col-span-3">
+             <motion.div 
+               initial={{ opacity: 0, x: 20 }}
+               animate={{ opacity: 1, x: 0 }}
+               className="mb-10"
+             >
+                <div className="flex justify-between items-center mb-4">
+                  <h1 className="text-4xl font-extrabold text-dark-900">{entity.name}</h1>
+                  {entity.rating && (
+                    <div className="flex items-center gap-1.5 px-3 py-1 bg-amber-50 text-amber-600 rounded-full border border-amber-100">
+                      <Star size={18} fill="currentColor" />
+                      <span className="font-bold">{entity.rating}</span>
+                    </div>
+                  )}
+                </div>
+                <p className="text-lg text-gray-600 leading-relaxed mb-6">
+                  {entity.description || "Data deskripsi untuk entitas ini sedang diperbarui untuk akurasi yang lebih baik dalam mendukung program Makan Bergizi Gratis."}
+                </p>
+
+                <div className="flex flex-wrap gap-4">
+                  <div className="px-5 py-3 bg-white border border-gray-100 rounded-2xl shadow-sm flex items-center gap-3">
+                    <ShieldCheck className="text-green-500" size={24} />
+                    <div>
+                      <p className="text-[10px] font-bold text-gray-400 uppercase">Status Verifikasi</p>
+                      <p className="text-sm font-bold text-dark-900">{entity.status === 'active' ? 'Terverifikasi' : 'Dalam Proses'}</p>
+                    </div>
+                  </div>
+                  
+                  {entity.capacity && (
+                    <div className="px-5 py-3 bg-white border border-gray-100 rounded-2xl shadow-sm flex items-center gap-3">
+                      {isSchool ? <Users className="text-blue-500" size={24} /> : <Package className="text-brand-500" size={24} />}
+                      <div>
+                        <p className="text-[10px] font-bold text-gray-400 uppercase">{isSchool ? 'Jumlah Siswa' : 'Kapasitas Produksi'}</p>
+                        <p className="text-sm font-bold text-dark-900">{entity.capacity.toLocaleString()} {isSchool ? 'Anak' : 'Porsi/Hari'}</p>
+                      </div>
+                    </div>
+                  )}
+
+                  {entity.auditScore !== undefined && (
+                    <div className="px-5 py-3 bg-white border border-gray-100 rounded-2xl shadow-sm flex items-center gap-3">
+                      <CheckCircle2 className="text-emerald-500" size={24} />
+                      <div>
+                        <p className="text-[10px] font-bold text-gray-400 uppercase">Skor Audit</p>
+                        <p className="text-sm font-bold text-dark-900">{entity.auditScore}%</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+             </motion.div>
+
+             {/* Type-Specific Modules */}
+             <div className="grid md:grid-cols-2 gap-6">
+                
+                {/* Commodities Section */}
+                {isVendor && (
+                  <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm md:col-span-2">
+                    <h3 className="font-bold text-dark-900 mb-4 flex items-center gap-2">
+                      <Package size={20} className="text-brand-600" /> Komoditas Utama
+                    </h3>
+                    <div className="flex flex-wrap gap-3">
+                      {entity.commodities?.map((c, i) => (
+                        <div key={i} className="px-4 py-2 bg-gray-50 text-gray-700 text-sm font-bold rounded-xl border border-gray-100">
+                          {c}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Operations Section */}
+                <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm">
+                  <h3 className="font-bold text-dark-900 mb-4 flex items-center gap-2">
+                    <Calendar size={20} className="text-blue-600" /> Jam Operasional
+                  </h3>
+                  <div className="space-y-2 text-sm text-gray-600">
+                    <div className="flex justify-between font-medium"><span>Senin - Jumat</span> <span>07:00 - 15:00</span></div>
+                    <div className="flex justify-between font-medium text-gray-400"><span>Sabtu - Minggu</span> <span>Tutup</span></div>
+                  </div>
+                </div>
+
+                {/* Logistics Section */}
+                <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm">
+                  <h3 className="font-bold text-dark-900 mb-4 flex items-center gap-2">
+                    <Info size={20} className="text-amber-600" /> Info Tambahan
+                  </h3>
+                  <ul className="space-y-2 text-sm text-gray-600">
+                    <li className="flex items-center gap-2"><CheckCircle2 size={14} className="text-green-500" /> Memenuhi SNI</li>
+                    <li className="flex items-center gap-2"><CheckCircle2 size={14} className="text-green-500" /> Akses Kendaraan Besar</li>
+                  </ul>
+                </div>
+
+                {/* Action Section */}
+                <div className="md:col-span-2 pt-6">
+                   <div className="bg-dark-900 rounded-3xl p-8 text-white flex flex-col md:flex-row items-center justify-between gap-6 overflow-hidden relative">
+                      <div className="relative z-10">
+                        <h3 className="text-xl font-bold mb-1">Mulai Koordinasi Distribusi</h3>
+                        <p className="text-gray-400 text-sm">Hubungkan entitas ini ke dalam rantai pasok wilayah Anda.</p>
+                      </div>
+                      <button className="relative z-10 px-8 py-3 bg-brand-600 text-white font-bold rounded-xl hover:bg-brand-500 transition-all shadow-lg flex items-center gap-2">
+                        Hubungi Pengelola <ExternalLink size={18} />
+                      </button>
+                      <div className="absolute top-0 right-0 w-32 h-32 bg-brand-500 rounded-full blur-[60px] opacity-20 -mr-16 -mt-16" />
+                   </div>
+                </div>
+
+             </div>
+          </div>
+
+        </div>
+
+      </div>
+    </div>
+  );
+};
+
+export default EntityDetailPage;

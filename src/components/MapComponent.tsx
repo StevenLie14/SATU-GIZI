@@ -10,9 +10,10 @@ export interface MapComponentProps {
   zoom: number;
   onMapClick?: (lat: number, lng: number) => void;
   onAuditClick?: (entity: GeoEntity) => void;
+  onDetailClick?: (entity: GeoEntity) => void;
 }
 
-export const MapComponent = ({ entities, center, zoom, onMapClick, onAuditClick }: MapComponentProps) => {
+export const MapComponent = ({ entities, center, zoom, onMapClick, onAuditClick, onDetailClick }: MapComponentProps) => {
   return (
     <div className="w-full h-full rounded-2xl overflow-hidden shadow-inner isolate z-0">
       <MapContainer 
@@ -105,13 +106,16 @@ export const MapComponent = ({ entities, center, zoom, onMapClick, onAuditClick 
                          <ClipboardCheck className="w-3.5 h-3.5" /> Audit
                        </button>
                     )}
-                    <button className={`py-1.5 rounded text-white font-medium transition-colors ${
-                      entity.type === 'vendor' ? 'flex-[2]' : 'w-full'
-                    } ${
-                      entity.type === 'school' ? 'bg-blue-600 hover:bg-blue-700' : 
-                      entity.type === 'kitchen' ? 'bg-brand-600 hover:bg-brand-700' :
-                      'bg-amber-600 hover:bg-amber-700'
-                    }`}>
+                    <button 
+                      onClick={() => onDetailClick?.(entity)}
+                      className={`py-1.5 rounded text-white font-medium transition-colors ${
+                        entity.type === 'vendor' ? 'flex-[2]' : 'w-full'
+                      } ${
+                        entity.type === 'school' ? 'bg-blue-600 hover:bg-blue-700' : 
+                        entity.type === 'kitchen' ? 'bg-brand-600 hover:bg-brand-700' :
+                        'bg-amber-600 hover:bg-amber-700'
+                      }`}
+                    >
                       Lihat Detail
                     </button>
                   </div>

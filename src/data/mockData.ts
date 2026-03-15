@@ -1,4 +1,7 @@
 import { type GeoEntity } from "../types";
+import vendorImg from "../assets/vendor.jpg";
+import schoolImg from "../assets/school.jpg";
+import kitchenImg from "../assets/kitchen.jpg";
 
 export const mockEntities: GeoEntity[] = [
   // Vendor Data
@@ -12,6 +15,9 @@ export const mockEntities: GeoEntity[] = [
     status: "active",
     rating: 4.8,
     commodities: ["Beras", "Sayuran Segar", "Bumbu Dapur"],
+    description: "Pemasok bahan pangan pokok yang berfokus pada kualitas gabah dan sayuran organik langsung dari petani binaan di Jawa Barat.",
+    image: vendorImg,
+    phone: "021-1234567",
   },
   {
     id: "v2",
@@ -23,6 +29,9 @@ export const mockEntities: GeoEntity[] = [
     status: "active",
     rating: 4.6,
     commodities: ["Daging Sapi", "Daging Ayam", "Telur"],
+    description: "Spesialis penyedia protein hewani segar yang telah bersertifikasi Halal dan melalui kontrol kualitas ketat dari dinas peternakan.",
+    image: vendorImg,
+    phone: "021-7654321",
   },
   {
     id: "v3",
@@ -34,6 +43,9 @@ export const mockEntities: GeoEntity[] = [
     status: "active",
     rating: 4.9,
     commodities: ["Buah-buahan", "Sayuran Organik", "Susu Sapi"],
+    description: "Koperasi petani lokal yang menyediakan produk segar pegunungan dengan sistem bagi hasil yang adil bagi komunitas petani Bandung.",
+    image: vendorImg,
+    phone: "022-9998887",
   },
   {
     id: "v4",
@@ -45,6 +57,9 @@ export const mockEntities: GeoEntity[] = [
     status: "active",
     rating: 4.7,
     commodities: ["Sayuran Segar", "Kentang", "Tomat"],
+    description: "Pusat distribusi sayuran segar dari kawasan Puncak Bogor, menjamin kualitas 'farm-to-table' dengan pengiriman harian.",
+    image: vendorImg,
+    phone: "0251-1112223",
   },
   {
     id: "v5",
@@ -56,6 +71,9 @@ export const mockEntities: GeoEntity[] = [
     status: "active",
     rating: 4.5,
     commodities: ["Beras", "Minyak Goreng", "Gula"],
+    description: "Grosir sembako terpercaya di Jakarta Selatan yang telah melayani kebutuhan pangan pokok selama lebih dari 10 tahun.",
+    image: vendorImg,
+    phone: "021-3334445",
   },
   {
     id: "v6",
@@ -67,6 +85,9 @@ export const mockEntities: GeoEntity[] = [
     status: "active",
     rating: 4.9,
     commodities: ["Daging Sapi", "Tulang Sapi"],
+    description: "Distributor khusus daging sapi impor dan lokal dengan fasilitas cold storage modern untuk menjaga mata rantai pendingin.",
+    image: vendorImg,
+    phone: "021-6667778",
   },
   {
     id: "v7",
@@ -78,6 +99,9 @@ export const mockEntities: GeoEntity[] = [
     status: "active",
     rating: 4.8,
     commodities: ["Sayuran Segar", "Cabai", "Bawang"],
+    description: "Hub utama sayur mayur di Jakarta Timur, mengumpulkan hasil bumi terbaik dari berbagai wilayah di Indonesia.",
+    image: vendorImg,
+    phone: "021-8889990",
   },
   {
     id: "v8",
@@ -89,6 +113,9 @@ export const mockEntities: GeoEntity[] = [
     status: "active",
     rating: 4.6,
     commodities: ["Telur Ayam", "Telur Bebek"],
+    description: "Pemasok telur terpercaya dengan pengawasan kualitas cangkang dan kebersihan produk yang ketat.",
+    image: vendorImg,
+    phone: "021-5556667",
   },
   // School Data
   {
@@ -100,6 +127,9 @@ export const mockEntities: GeoEntity[] = [
     address: "Jl. Besuki No.4, Menteng, Jakarta Pusat",
     capacity: 450,
     status: "active",
+    description: "Sekolah Dasar Negeri percontohan di Jakarta Pusat yang mengutamakan kesehatan dan gizi siswa melalui program makanan bergizi.",
+    image: schoolImg,
+    phone: "021-5550001",
   },
   {
     id: "s2",
@@ -110,6 +140,9 @@ export const mockEntities: GeoEntity[] = [
     address: "Jl. Cikini Raya No.87, Jakarta Pusat",
     capacity: 800,
     status: "active",
+    description: "Salah satu SMP tertua di Jakarta yang memiliki standar kantin gizi seimbang untuk menunjang tumbuh kembang remaja.",
+    image: schoolImg,
+    phone: "021-5550002",
   },
   // Kitchen Data
   {
@@ -122,6 +155,9 @@ export const mockEntities: GeoEntity[] = [
     capacity: 2000,
     status: "active",
     rating: 4.7,
+    description: "Pusat pengolahan makanan skala besar yang melayani distribusi ke 10 sekolah di wilayah Senen dan sekitarnya dengan standar higienis tinggi.",
+    image: kitchenImg,
+    phone: "021-7890001",
   },
   {
     id: "k2",
@@ -133,5 +169,8 @@ export const mockEntities: GeoEntity[] = [
     capacity: 1500,
     status: "active",
     rating: 4.5,
+    description: "Dapur pengolah yang berfokus pada menu makanan bergizi seimbang dengan pengawasan ahli gizi tersertifikasi.",
+    image: kitchenImg,
+    phone: "021-7890002",
   },
 ];

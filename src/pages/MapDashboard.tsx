@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { Filter, Search, Map as MapIcon, ChevronRight, Briefcase, Plus, ChefHat, School } from 'lucide-react';
+import { Filter, Search, Map as MapIcon, ChevronRight, Briefcase, Plus, ChefHat, School, ArrowRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import MapComponent from '../components/MapComponent';
 import { AddEntityModal } from '../components/AddEntityModal';
@@ -170,8 +170,8 @@ const MapDashboard = () => {
                 entity.type === 'school' ? 'hover:border-blue-300' :
                 entity.type === 'kitchen' ? 'hover:border-brand-300' :
                 'hover:border-amber-300'
-              } border-gray-100`}
-              onClick={() => focusRegion(entity.lat, entity.lng, 15)}
+              } border-gray-100 group`}
+              onClick={() => navigate(`/detail/${entity.id}`)}
             >
               <div className="flex justify-between items-start mb-2">
                 <div className="flex items-center gap-2">
@@ -208,6 +208,13 @@ const MapDashboard = () => {
                   )}
                 </span>
               </div>
+              
+              <div className="mt-3 pt-3 border-t border-gray-50 flex justify-between items-center opacity-0 group-hover:opacity-100 transition-opacity">
+                <span className="text-[10px] font-bold text-brand-600">Klik untuk Detail</span>
+                <div className="w-5 h-5 rounded-full bg-brand-50 flex items-center justify-center text-brand-600">
+                  <ArrowRight size={12} />
+                </div>
+              </div>
             </motion.div>
           ))}
           
@@ -228,6 +235,7 @@ const MapDashboard = () => {
              zoom={mapZoom} 
              onMapClick={handleMapClick}
              onAuditClick={handleAuditClick}
+             onDetailClick={(entity) => navigate(`/detail/${entity.id}`)}
            />
         </div>
       </div>

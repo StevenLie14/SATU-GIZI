@@ -7,6 +7,7 @@ import RegisterPage from './pages/RegisterPage';
 import AuditPage from './pages/AuditPage';
 import ForecastPage from './pages/ForecastPage';
 import MatchmakingPage from './pages/MatchmakingPage';
+import EntityDetailPage from './pages/EntityDetailPage';
 import Footer from './components/Footer';
 import { ChatBot } from './components/ChatBot';
 
@@ -23,6 +24,7 @@ function App() {
           <Route path="/audit" element={<AuditPage />} />
           <Route path="/forecast" element={<ForecastPage />} />
           <Route path="/matchmaking" element={<MatchmakingPage />} />
+          <Route path="/detail/:id" element={<EntityDetailPage />} />
         </Routes>
       </main>
       <Footer />
