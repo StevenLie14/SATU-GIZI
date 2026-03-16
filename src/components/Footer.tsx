@@ -1,6 +1,6 @@
 import {  Heart, Mail, Phone, MapPin } from 'lucide-react';
 import { Link } from 'react-router-dom';
-
+import Logo from "../assets/logo.jpg";
 const Footer = () => {
   return (
     <footer className="bg-dark-900 pt-16 pb-8 border-t border-dark-800 text-gray-400">
@@ -9,7 +9,7 @@ const Footer = () => {
           
           <div className="col-span-1 md:col-span-1">
             <Link to="/" className="flex items-center mb-6">
-              <img src="/src/assets/logo.png" alt="SATU GIZI Logo" className="h-12 w-auto" />
+              <img src={Logo} alt="SATU GIZI Logo" className="h-12 w-auto" />
             </Link>
             <p className="text-sm leading-relaxed mb-6">
               Platform modern perizinan, pengawasan, dan distribusi pasokan untuk ekosistem Makan Bergizi Gratis di seluruh Indonesia.

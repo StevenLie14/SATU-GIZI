@@ -2,7 +2,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Map, Home, Menu, X, TrendingUp, Handshake } from 'lucide-react';
 import { useState, useEffect } from 'react';
-
+import Logo from "../assets/logo.jpg";
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -36,7 +36,7 @@ const Navbar = () => {
         <div className="flex justify-between h-20">
           <div className="flex items-center gap-3">
             <Link to="/" className="flex items-center">
-              <img src="/src/assets/logo.png" alt="SATU GIZI Logo" className="h-10 w-auto" />
+              <img src={Logo} alt="SATU GIZI Logo" className="h-10 w-auto" />
               <span className="text-xl font-bold text-dark-900 tracking-tight leading-none">SATU</span>
               <span className="text-xl font-bold text-brand-600 tracking-tight leading-none">GIZI</span>
             </Link>

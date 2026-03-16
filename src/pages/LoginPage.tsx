@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Mail, Lock, ArrowRight, ArrowLeft } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
-
+import Logo from "../assets/logo.jpg";
 const LoginPage = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -23,7 +23,7 @@ const LoginPage = () => {
         </Link>
         <div className="text-center">
           <Link to="/" className="inline-flex items-center gap-1.5 justify-center mb-6">
-            <img src="/src/assets/logo.png" alt="SATU GIZI" className="h-12 w-auto" />
+            <img src={Logo} alt="SATU GIZI" className="h-12 w-auto" />
             <div className="flex flex-col text-left">
               <span className="text-xl font-bold text-dark-900 tracking-tight leading-none mb-0.5">SATU<span className="text-brand-600">GIZI</span></span>
             </div>
