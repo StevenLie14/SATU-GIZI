@@ -143,12 +143,16 @@ const LandingPage = () => {
               <div className="w-14 h-14 bg-blue-50 rounded-2xl flex items-center justify-center mb-6 border border-blue-100">
                 <CheckCircle2 className="w-7 h-7 text-blue-600" />
               </div>
-              <h4 className="text-xl font-bold text-dark-900 mb-3">Perizinan & Pengawasan</h4>
+              <h4 className="text-xl font-bold text-dark-900 mb-3">Platform Perizinan dan Pengawasan Vendor MBG</h4>
               <p className="text-gray-600 leading-relaxed mb-6">
-                Standarisasi mutu vendor melalui audit digital yang ketat. Menggunakan teknologi Blockchain untuk memastikan data kepatuhan tidak dapat dimanipulasi.
+                Standarisasi mutu dan kepatuhan vendor melalui sistem audit digital otomatis dan skor kepercayaan berbasis AI.
               </p>
               <ul className="space-y-2">
-                {['Verifikasi Higienitas ISO', 'Sertifikasi Halal Terpadu', 'Rekaman Audit Blockchain'].map((item, i) => (
+                {[
+                  'Digital certificate (izin vendor)',
+                  'AI vendor trust score (Kualitas & Pengiriman)',
+                  'Computer vision audit (Kebersihan & Gizi)'
+                ].map((item, i) => (
                   <li key={i} className="flex items-center gap-2 text-sm text-gray-600">
                     <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />
                     {item}
@@ -166,12 +170,16 @@ const LandingPage = () => {
                 <div className="w-14 h-14 bg-brand-50 rounded-2xl flex items-center justify-center mb-6 border border-brand-200">
                   <Map className="w-7 h-7 text-brand-600" />
                 </div>
-                <h4 className="text-xl font-bold text-dark-900 mb-3">Matching Demand-Supply</h4>
+                <h4 className="text-xl font-bold text-dark-900 mb-3">Platform Matching Demand-Supply Antarwilayah</h4>
                 <p className="text-gray-600 leading-relaxed mb-6">
-                  Menyeimbangkan kebutuhan gizi sekolah dengan kapasitas produksi dapur pusat secara real-time untuk mencegah kekurangan atau kelebihan stok.
+                  Optimasi alokasi pasokan pangan nasional menggunakan kecerdasan buatan untuk efisiensi logistik maksimal.
                 </p>
                 <ul className="space-y-2">
-                  {['Prediksi Kebutuhan Wilayah', 'Optimasi Rute Distribusi', 'Dashboard Stok Terpusat'].map((item, i) => (
+                  {[
+                    'AI Demand Forecasting (Prediksi Kebutuhan)',
+                    'Dynamic allocation ke vendor/SPPG',
+                    'Route optimization (Waktu & Biaya)'
+                  ].map((item, i) => (
                     <li key={i} className="flex items-center gap-2 text-sm text-gray-600">
                       <div className="w-1.5 h-1.5 rounded-full bg-brand-500" />
                       {item}
@@ -188,12 +196,16 @@ const LandingPage = () => {
               <div className="w-14 h-14 bg-amber-50 rounded-2xl flex items-center justify-center mb-6 border border-amber-100">
                 <Briefcase className="w-7 h-7 text-amber-600" />
               </div>
-              <h4 className="text-xl font-bold text-dark-900 mb-3">B2B Matchmaking</h4>
+              <h4 className="text-xl font-bold text-dark-900 mb-3">B2B Matchmaking untuk Bahan Baku</h4>
               <p className="text-gray-600 leading-relaxed mb-6">
-                Menghubungkan unit pengolah makanan (Dapur) dengan pemasok bahan baku (Vendor) terdekat untuk menekan biaya logistik dan mendukung UMKM.
+                Menghubungkan unit pengolah dengan supplier bahan baku terbaik melalui prediksi harga dan risiko kualitas.
               </p>
               <ul className="space-y-2">
-                {['Koneksi UMKM Lokal', 'Harga Bahan Baku Kompetitif', 'Logistik Jarak Pendek'].map((item, i) => (
+                {[
+                  'Smart supplier matching',
+                  'Price prediction (Cegah Lonjakan Harga)',
+                  'Quality risk prediction'
+                ].map((item, i) => (
                   <li key={i} className="flex items-center gap-2 text-sm text-gray-600">
                     <div className="w-1.5 h-1.5 rounded-full bg-amber-500" />
                     {item}
