@@ -41,9 +41,9 @@ const LandingPage = () => {
                   Buka Peta Sebaran
                   <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                 </Link>
-                <button className="inline-flex justify-center items-center gap-2 px-8 py-4 bg-white text-dark-900 font-semibold rounded-full border border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-all">
+                <Link to="/map" className="inline-flex justify-center items-center gap-2 px-8 py-4 bg-white text-dark-900 font-semibold rounded-full border border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-all">
                   Pelajari Dashboard
-                </button>
+                </Link>
               </motion.div>
             </motion.div>
 
@@ -136,83 +136,89 @@ const LandingPage = () => {
           </div>
 
           <div className="grid md:grid-cols-3 gap-8">
-            <motion.div 
-              whileHover={{ y: -5 }}
-              className="bg-white rounded-3xl p-8 shadow-sm border border-gray-100 hover:shadow-xl hover:shadow-brand-500/5 transition-all"
-            >
-              <div className="w-14 h-14 bg-blue-50 rounded-2xl flex items-center justify-center mb-6 border border-blue-100">
-                <CheckCircle2 className="w-7 h-7 text-blue-600" />
-              </div>
-              <h4 className="text-xl font-bold text-dark-900 mb-3">Platform Perizinan dan Pengawasan Vendor MBG</h4>
-              <p className="text-gray-600 leading-relaxed mb-6">
-                Standarisasi mutu dan kepatuhan vendor melalui sistem audit digital otomatis dan skor kepercayaan berbasis AI.
-              </p>
-              <ul className="space-y-2">
-                {[
-                  'Digital certificate (izin vendor)',
-                  'AI vendor trust score (Kualitas & Pengiriman)',
-                  'Computer vision audit (Kebersihan & Gizi)'
-                ].map((item, i) => (
-                  <li key={i} className="flex items-center gap-2 text-sm text-gray-600">
-                    <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />
-                    {item}
-                  </li>
-                ))}
-              </ul>
-            </motion.div>
-
-            <motion.div 
-              whileHover={{ y: -5 }}
-              className="bg-white rounded-3xl p-8 shadow-md border border-brand-100 relative overflow-hidden"
-            >
-              <div className="absolute top-0 right-0 w-32 h-32 bg-brand-50 rounded-bl-full -mr-16 -mt-16 z-0" />
-              <div className="relative z-10">
-                <div className="w-14 h-14 bg-brand-50 rounded-2xl flex items-center justify-center mb-6 border border-brand-200">
-                  <Map className="w-7 h-7 text-brand-600" />
+            <Link to="/audit">
+              <motion.div 
+                whileHover={{ y: -5 }}
+                className="bg-white rounded-3xl p-8 shadow-sm border border-gray-100 hover:shadow-xl hover:shadow-brand-500/5 transition-all h-full"
+              >
+                <div className="w-14 h-14 bg-blue-50 rounded-2xl flex items-center justify-center mb-6 border border-blue-100">
+                  <CheckCircle2 className="w-7 h-7 text-blue-600" />
                 </div>
-                <h4 className="text-xl font-bold text-dark-900 mb-3">Platform Matching Demand-Supply Antarwilayah</h4>
+                <h4 className="text-xl font-bold text-dark-900 mb-3">Platform Perizinan dan Pengawasan Vendor MBG</h4>
                 <p className="text-gray-600 leading-relaxed mb-6">
-                  Optimasi alokasi pasokan pangan nasional menggunakan kecerdasan buatan untuk efisiensi logistik maksimal.
+                  Standarisasi mutu dan kepatuhan vendor melalui sistem audit digital otomatis dan skor kepercayaan berbasis AI.
                 </p>
                 <ul className="space-y-2">
                   {[
-                    'AI Demand Forecasting (Prediksi Kebutuhan)',
-                    'Dynamic allocation ke vendor/SPPG',
-                    'Route optimization (Waktu & Biaya)'
+                    'Digital certificate (izin vendor)',
+                    'AI vendor trust score (Kualitas & Pengiriman)',
+                    'Computer vision audit (Kebersihan & Gizi)'
                   ].map((item, i) => (
                     <li key={i} className="flex items-center gap-2 text-sm text-gray-600">
-                      <div className="w-1.5 h-1.5 rounded-full bg-brand-500" />
+                      <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />
                       {item}
                     </li>
                   ))}
                 </ul>
-              </div>
-            </motion.div>
+              </motion.div>
+            </Link>
 
-            <motion.div 
-              whileHover={{ y: -5 }}
-              className="bg-white rounded-3xl p-8 shadow-sm border border-gray-100 hover:shadow-xl hover:shadow-brand-500/5 transition-all"
-            >
-              <div className="w-14 h-14 bg-amber-50 rounded-2xl flex items-center justify-center mb-6 border border-amber-100">
-                <Briefcase className="w-7 h-7 text-amber-600" />
-              </div>
-              <h4 className="text-xl font-bold text-dark-900 mb-3">B2B Matchmaking untuk Bahan Baku</h4>
-              <p className="text-gray-600 leading-relaxed mb-6">
-                Menghubungkan unit pengolah dengan supplier bahan baku terbaik melalui prediksi harga dan risiko kualitas.
-              </p>
-              <ul className="space-y-2">
-                {[
-                  'Smart supplier matching',
-                  'Price prediction (Cegah Lonjakan Harga)',
-                  'Quality risk prediction'
-                ].map((item, i) => (
-                  <li key={i} className="flex items-center gap-2 text-sm text-gray-600">
-                    <div className="w-1.5 h-1.5 rounded-full bg-amber-500" />
-                    {item}
-                  </li>
-                ))}
-              </ul>
-            </motion.div>
+            <Link to="/forecast">
+              <motion.div 
+                whileHover={{ y: -5 }}
+                className="bg-white rounded-3xl p-8 shadow-md border border-brand-100 relative overflow-hidden h-full"
+              >
+                <div className="absolute top-0 right-0 w-32 h-32 bg-brand-50 rounded-bl-full -mr-16 -mt-16 z-0" />
+                <div className="relative z-10">
+                  <div className="w-14 h-14 bg-brand-50 rounded-2xl flex items-center justify-center mb-6 border border-brand-200">
+                    <Map className="w-7 h-7 text-brand-600" />
+                  </div>
+                  <h4 className="text-xl font-bold text-dark-900 mb-3">Platform Matching Demand-Supply Antarwilayah</h4>
+                  <p className="text-gray-600 leading-relaxed mb-6">
+                    Optimasi alokasi pasokan pangan nasional menggunakan kecerdasan buatan untuk efisiensi logistik maksimal.
+                  </p>
+                  <ul className="space-y-2">
+                    {[
+                      'AI Demand Forecasting (Prediksi Kebutuhan)',
+                      'Dynamic allocation ke vendor/SPPG',
+                      'Route optimization (Waktu & Biaya)'
+                    ].map((item, i) => (
+                      <li key={i} className="flex items-center gap-2 text-sm text-gray-600">
+                        <div className="w-1.5 h-1.5 rounded-full bg-brand-500" />
+                        {item}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </motion.div>
+            </Link>
+
+            <Link to="/matchmaking">
+              <motion.div 
+                whileHover={{ y: -5 }}
+                className="bg-white rounded-3xl p-8 shadow-sm border border-gray-100 hover:shadow-xl hover:shadow-brand-500/5 transition-all h-full"
+              >
+                <div className="w-14 h-14 bg-amber-50 rounded-2xl flex items-center justify-center mb-6 border border-amber-100">
+                  <Briefcase className="w-7 h-7 text-amber-600" />
+                </div>
+                <h4 className="text-xl font-bold text-dark-900 mb-3">B2B Matchmaking untuk Bahan Baku</h4>
+                <p className="text-gray-600 leading-relaxed mb-6">
+                  Menghubungkan unit pengolah dengan supplier bahan baku terbaik melalui prediksi harga dan risiko kualitas.
+                </p>
+                <ul className="space-y-2">
+                  {[
+                    'Smart supplier matching',
+                    'Price prediction (Cegah Lonjakan Harga)',
+                    'Quality risk prediction'
+                  ].map((item, i) => (
+                    <li key={i} className="flex items-center gap-2 text-sm text-gray-600">
+                      <div className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+              </motion.div>
+            </Link>
 
           </div>
         </div>

@@ -3,12 +3,13 @@ import { motion } from 'framer-motion';
 import { 
   ArrowLeft, MapPin, Phone, Globe, Star, ShieldCheck, 
   ChefHat, School, Briefcase, Calendar, Users, Package, 
-  CheckCircle2, AlertCircle, Info, ExternalLink
+  CheckCircle2, AlertCircle, Info, ExternalLink, FileText
 } from 'lucide-react';
 import { mockEntities } from '../data/mockData';
 import schoolImg from '../assets/school.jpg';
 import kitchenImg from '../assets/kitchen.jpg';
 import vendorImg from '../assets/vendor.jpg';
+import importantDoc from '../assets/DOKUMEN PENTING.pdf';
 
 const EntityDetailPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -199,7 +200,49 @@ const EntityDetailPage = () => {
                   </ul>
                 </div>
 
-                {/* Action Section */}
+                <div className="md:col-span-2 bg-gradient-to-br from-white to-gray-50 p-8 rounded-[32px] border border-gray-100 shadow-sm relative overflow-hidden group">
+                  <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-6">
+                    <div className="flex items-center gap-5">
+                      <div className="w-16 h-16 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center border border-blue-100 shadow-inner group-hover:scale-110 transition-transform">
+                        <FileText size={32} />
+                      </div>
+                      <div>
+                        <h3 className="text-xl font-bold text-dark-900 flex items-center gap-2">
+                          Blockchain Verified Documents
+                          <ShieldCheck size={18} className="text-blue-500" />
+                        </h3>
+                        <p className="text-gray-500 text-sm mt-1 max-w-md">
+                          {isSchool && "Sertifikat pendaftaran sekolah, data siswa (DAPODIK), dan laporan kelayakan gedung terverifikasi blockchain."}
+                          {isVendor && "Izin usaha (NIB), sertifikasi halal, dan laporan audit rantai pasok yang tersimpan secara permanen."}
+                          {isKitchen && "Hasil verifikasi pengawasan, sertifikat higienitas, dan kelayakan operasional dapur pusat."}
+                        </p>
+                        <div className="mt-4 flex flex-wrap gap-3">
+                          <div className="px-3 py-1 bg-blue-100/50 rounded-lg border border-blue-200 flex items-center gap-2">
+                             <span className="text-[10px] font-black text-blue-700 uppercase">TX Hash</span>
+                             <code className="text-[11px] font-mono text-blue-900 font-bold">0x74a2...9bfe</code>
+                          </div>
+                          <div className="px-3 py-1 bg-emerald-100/50 rounded-lg border border-emerald-200 flex items-center gap-2">
+                             <span className="text-[10px] font-black text-emerald-700 uppercase">Block</span>
+                             <code className="text-[11px] font-mono text-emerald-900 font-bold">#19,482,103</code>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <a 
+                      href={importantDoc} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="px-6 py-3 bg-white border-2 border-gray-100 text-dark-900 font-bold rounded-xl hover:bg-gray-50 hover:border-brand-500 hover:text-brand-600 transition-all shadow-sm flex items-center gap-2 shrink-0 group-hover:shadow-md"
+                    >
+                      <ExternalLink size={18} /> View Document
+                    </a>
+                  </div>
+                  
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-blue-100 rounded-full blur-[60px] opacity-20 -mr-16 -mt-16" />
+                  <div className="absolute bottom-0 left-0 w-24 h-24 bg-brand-100 rounded-full blur-[40px] opacity-20 -ml-12 -mb-12" />
+                </div>
+
                 <div className="md:col-span-2 pt-6">
                    <div className="bg-dark-900 rounded-3xl p-8 text-white flex flex-col md:flex-row items-center justify-between gap-6 overflow-hidden relative">
                       <div className="relative z-10">
