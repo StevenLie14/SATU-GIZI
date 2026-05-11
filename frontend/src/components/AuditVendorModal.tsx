@@ -97,14 +97,12 @@ export const AuditVendorModal = ({ isOpen, onClose, vendor, onSubmit }: AuditVen
     );
   };
 
-  // Group items by category initially
   const groupedItems = auditItems.reduce((acc, item) => {
     if (!acc[item.category]) acc[item.category] = [];
     acc[item.category].push(item);
     return acc;
   }, {} as Record<string, ChecklistItem[]>);
 
-  // Initialize expanded categories on first load to show all
   if (expandedCategories.length === 0 && Object.keys(results).length === 0 && isOpen) {
      setExpandedCategories(Object.keys(groupedItems));
   }
@@ -113,7 +111,6 @@ export const AuditVendorModal = ({ isOpen, onClose, vendor, onSubmit }: AuditVen
     e.preventDefault();
     onSubmit(vendor.id, results);
     
-    // reset
     setResults({});
     onClose();
   };
@@ -146,7 +143,6 @@ export const AuditVendorModal = ({ isOpen, onClose, vendor, onSubmit }: AuditVen
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
             className="relative bg-white rounded-2xl shadow-xl w-full max-w-4xl h-[90vh] md:h-[80vh] flex flex-col overflow-hidden"
           >
-            {/* Header */}
             <div className="flex items-center justify-between p-5 border-b border-gray-100 bg-brand-50">
               <div>
                 <h3 className="text-xl font-bold text-dark-900 flex items-center gap-2">
@@ -173,7 +169,6 @@ export const AuditVendorModal = ({ isOpen, onClose, vendor, onSubmit }: AuditVen
               </div>
             </div>
 
-            {/* Checklist Body */}
             <form id="audit-form" onSubmit={handleSubmit} className="flex-1 overflow-y-auto bg-gray-50/50 p-4 md:p-6 space-y-6">
                
               <div className="bg-blue-50 border border-blue-100 p-4 rounded-xl text-sm text-blue-800 flex gap-3 items-start">
@@ -188,7 +183,6 @@ export const AuditVendorModal = ({ isOpen, onClose, vendor, onSubmit }: AuditVen
 
                 return (
                   <div key={category} className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
-                    {/* Accordion Header */}
                     <button 
                       type="button"
                       onClick={() => toggleCategory(category)}
@@ -207,7 +201,6 @@ export const AuditVendorModal = ({ isOpen, onClose, vendor, onSubmit }: AuditVen
                       </div>
                     </button>
 
-                    {/* Accordion Body */}
                     <AnimatePresence>
                       {isExpanded && (
                         <motion.div

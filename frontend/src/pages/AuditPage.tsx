@@ -170,7 +170,6 @@ export default function AuditPage() {
             <div className="p-8 md:p-10">
               <form onSubmit={handleSubmit} className="space-y-8">
                 
-                {/* Text Inputs */}
                 <div>
                   <label htmlFor="vendorName" className="block text-sm font-semibold text-gray-700 mb-2">Nama Vendor / Koperasi</label>
                   <input

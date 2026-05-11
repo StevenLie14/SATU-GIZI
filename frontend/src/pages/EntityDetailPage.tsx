@@ -40,7 +40,6 @@ const EntityDetailPage = () => {
     <div className="min-h-screen bg-gray-50 pt-24 pb-20">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         
-        {/* Navigation & Header */}
         <button 
           onClick={() => navigate(-1)}
           className="flex items-center gap-2 text-gray-500 hover:text-brand-600 font-medium transition-colors mb-8 group"
@@ -51,7 +50,6 @@ const EntityDetailPage = () => {
 
         <div className="grid lg:grid-cols-5 gap-10">
           
-          {/* Left Column: Image & Basic Info */}
           <div className="lg:col-span-2">
             <motion.div 
               initial={{ opacity: 0, scale: 0.95 }}
@@ -108,7 +106,6 @@ const EntityDetailPage = () => {
             </div>
           </div>
 
-          {/* Right Column: Detailed Info */}
           <div className="lg:col-span-3">
              <motion.div 
                initial={{ opacity: 0, x: 20 }}
@@ -159,10 +156,8 @@ const EntityDetailPage = () => {
                 </div>
              </motion.div>
 
-             {/* Type-Specific Modules */}
              <div className="grid md:grid-cols-2 gap-6">
                 
-                {/* Commodities Section */}
                 {isVendor && (
                   <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm md:col-span-2">
                     <h3 className="font-bold text-dark-900 mb-4 flex items-center gap-2">
@@ -178,7 +173,6 @@ const EntityDetailPage = () => {
                   </div>
                 )}
 
-                {/* Operations Section */}
                 <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm">
                   <h3 className="font-bold text-dark-900 mb-4 flex items-center gap-2">
                     <Calendar size={20} className="text-blue-600" /> Jam Operasional
@@ -189,7 +183,6 @@ const EntityDetailPage = () => {
                   </div>
                 </div>
 
-                {/* Logistics Section */}
                 <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm">
                   <h3 className="font-bold text-dark-900 mb-4 flex items-center gap-2">
                     <Info size={20} className="text-amber-600" /> Info Tambahan

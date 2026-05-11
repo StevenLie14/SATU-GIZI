@@ -97,7 +97,6 @@ export const AddEntityModal = ({ isOpen, onClose, onAdd, initialLocation }: AddE
         status: 'active',
       });
       
-      // Auto-geocode initial location if available
       if (initialLocation) {
         reverseGeocode(startLat, startLng, (addr) => setFormData(prev => ({...prev, address: addr})), setIsGeocoding);
       }

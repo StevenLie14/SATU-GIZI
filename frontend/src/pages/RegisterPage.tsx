@@ -26,6 +26,8 @@ const RegisterPage = () => {
   });
   
   const [locationSelected, setLocationSelected] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
 
   const handleDragEnd = (e: any) => {
@@ -40,11 +42,33 @@ const RegisterPage = () => {
     setLocationSelected(true);
   };
 
-  const handleRegister = (e: React.FormEvent) => {
+  const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Registering Vendor:', formData);
-    alert('lorem15');
-    navigate('/login');
+    setIsLoading(true);
+    setError(null);
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/auth/register`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Registration failed');
+      }
+
+      const data = await response.json();
+      localStorage.setItem('token', data.access_token);
+      alert('Registrasi berhasil!');
+      navigate('/login');
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -67,6 +91,11 @@ const RegisterPage = () => {
         className="sm:mx-auto sm:w-full sm:max-w-4xl flex flex-col lg:flex-row gap-6"
       >
         <div className="flex-1 bg-white py-8 px-4 shadow-xl shadow-gray-200/50 sm:rounded-2xl sm:px-10 border border-gray-100 relative z-10">
+          {error && (
+            <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-xl text-sm border border-red-100">
+              {error}
+            </div>
+          )}
           <form className="space-y-5" onSubmit={handleRegister}>
             
             <div>
@@ -161,9 +190,10 @@ const RegisterPage = () => {
               </div>
               <button
                 type="submit"
-                className="flex items-center gap-2 py-3 px-6 border border-transparent rounded-xl shadow-md text-sm font-bold text-white bg-brand-600 hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-600 transition-all hover:-translate-y-0.5"
+                disabled={isLoading}
+                className="flex items-center gap-2 py-3 px-6 border border-transparent rounded-xl shadow-md text-sm font-bold text-white bg-brand-600 hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-600 transition-all hover:-translate-y-0.5 disabled:opacity-50"
               >
-                Kirim Pendaftaran <ArrowRight className="w-4 h-4" />
+                {isLoading ? 'Mendaftar...' : <>Kirim Pendaftaran <ArrowRight className="w-4 h-4" /></>}
               </button>
             </div>
           </form>
