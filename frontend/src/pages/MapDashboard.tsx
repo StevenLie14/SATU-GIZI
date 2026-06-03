@@ -1,10 +1,9 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Filter, Search, Map as MapIcon, ChevronRight, Briefcase, Plus, ChefHat, School, ArrowRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import MapComponent from '../components/MapComponent';
 import { AddEntityModal } from '../components/AddEntityModal';
-import { mockEntities } from '../data/mockData';
 import type { GeoEntity, EntityType } from '../types';
 
 const MapDashboard = () => {
@@ -13,9 +12,26 @@ const MapDashboard = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [mapCenter, setMapCenter] = useState<[number, number]>([-6.200000, 106.816666]); // Default Jakarta
   const [mapZoom, setMapZoom] = useState(12);
-  const [entities, setEntities] = useState<GeoEntity[]>(mockEntities);
+  const [entities, setEntities] = useState<GeoEntity[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedLocation, setSelectedLocation] = useState<{lat: number, lng: number} | null>(null);
+
+  useEffect(() => {
+    const fetchEntities = async () => {
+      try {
+        const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/api/entities`);
+        if (!response.ok) throw new Error('Failed to fetch entities');
+        const data = await response.json();
+        setEntities(data);
+      } catch (error) {
+        console.error('Error fetching entities:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchEntities();
+  }, []);
 
   const filteredEntities = useMemo(() => {
     return entities.filter(entity => {
@@ -39,9 +55,23 @@ const MapDashboard = () => {
     setMapZoom(zoom);
   };
 
-  const handleAddEntity = (newEntity: GeoEntity) => {
-    setEntities([newEntity, ...entities]);
-    focusRegion(newEntity.lat, newEntity.lng, 15);
+  const handleAddEntity = async (newEntity: GeoEntity) => {
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/api/entities`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(newEntity),
+      });
+      if (!response.ok) throw new Error('Failed to create entity');
+      const createdEntity = await response.json();
+      setEntities(prev => [createdEntity, ...prev]);
+      focusRegion(createdEntity.lat, createdEntity.lng, 15);
+    } catch (error) {
+      console.error('Error creating entity:', error);
+      alert('Gagal menyimpan entitas ke database.');
+    }
   };
 
   const handleMapClick = (lat: number, lng: number) => {
@@ -161,62 +191,69 @@ const MapDashboard = () => {
             </div>
           </div>
 
-          {filteredEntities.map(entity => (
-            <motion.div 
-              key={entity.id}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className={`p-4 rounded-xl border transition-all cursor-pointer hover:shadow-md bg-white ${
-                entity.type === 'school' ? 'hover:border-blue-300' :
-                entity.type === 'kitchen' ? 'hover:border-brand-300' :
-                'hover:border-amber-300'
-              } border-gray-100 group`}
-              onClick={() => navigate(`/detail/${entity.id}`)}
-            >
-              <div className="flex justify-between items-start mb-2">
-                <div className="flex items-center gap-2">
-                   <div className={`p-1.5 rounded-lg ${
-                     entity.type === 'school' ? 'bg-blue-50 text-blue-600' :
-                     entity.type === 'kitchen' ? 'bg-brand-50 text-brand-600' :
-                     'bg-amber-50 text-amber-600'
-                   }`}>
-                      {entity.type === 'school' && <School size={16}/>}
-                      {entity.type === 'kitchen' && <ChefHat size={16}/>}
-                      {entity.type === 'vendor' && <Briefcase size={16}/>}
-                   </div>
-                   <h4 className="font-semibold text-dark-900 text-sm">{entity.name}</h4>
+          {isLoading ? (
+            <div className="flex flex-col items-center justify-center py-10 bg-white rounded-xl border border-gray-100">
+              <div className="w-8 h-8 border-4 border-brand-200 border-t-brand-600 rounded-full animate-spin"></div>
+              <p className="mt-2 text-xs text-gray-500 font-medium">Memuat data...</p>
+            </div>
+          ) : (
+            filteredEntities.map(entity => (
+              <motion.div 
+                key={entity.id}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className={`p-4 rounded-xl border transition-all cursor-pointer hover:shadow-md bg-white ${
+                  entity.type === 'school' ? 'hover:border-blue-300' :
+                  entity.type === 'kitchen' ? 'hover:border-brand-300' :
+                  'hover:border-amber-300'
+                } border-gray-100 group`}
+                onClick={() => navigate(`/detail/${entity.id}`)}
+              >
+                <div className="flex justify-between items-start mb-2">
+                  <div className="flex items-center gap-2">
+                     <div className={`p-1.5 rounded-lg ${
+                       entity.type === 'school' ? 'bg-blue-50 text-blue-600' :
+                       entity.type === 'kitchen' ? 'bg-brand-50 text-brand-600' :
+                       'bg-amber-50 text-amber-600'
+                     }`}>
+                        {entity.type === 'school' && <School size={16}/>}
+                        {entity.type === 'kitchen' && <ChefHat size={16}/>}
+                        {entity.type === 'vendor' && <Briefcase size={16}/>}
+                     </div>
+                     <h4 className="font-semibold text-dark-900 text-sm">{entity.name}</h4>
+                  </div>
+                  <ChevronRight className="w-4 h-4 text-gray-300 mt-1" />
                 </div>
-                <ChevronRight className="w-4 h-4 text-gray-300 mt-1" />
-              </div>
-              <p className="text-xs text-gray-500 line-clamp-1 mb-2">{entity.address}</p>
-              
-              <div className="flex justify-between items-center text-xs mt-3 pt-3 border-t border-gray-50">
-                <span className={`px-2 py-0.5 rounded-full ${entity.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}`}>
-                  Aktif
-                </span>
-                <span className="font-bold text-dark-900 text-right max-w-[150px] truncate">
-                  {entity.type === 'vendor' ? (
-                    entity.auditScore !== undefined ? (
-                      <span className={`${entity.auditScore >= 80 ? 'text-green-600' : entity.auditScore >= 60 ? 'text-amber-600' : 'text-red-600'}`}>
-                         Skor Audit: {entity.auditScore}%
-                      </span>
+                <p className="text-xs text-gray-500 line-clamp-1 mb-2">{entity.address}</p>
+                
+                <div className="flex justify-between items-center text-xs mt-3 pt-3 border-t border-gray-50">
+                  <span className={`px-2 py-0.5 rounded-full ${entity.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}`}>
+                    Aktif
+                  </span>
+                  <span className="font-bold text-dark-900 text-right max-w-[150px] truncate">
+                    {entity.type === 'vendor' ? (
+                      entity.auditScore !== undefined ? (
+                        <span className={`${entity.auditScore >= 80 ? 'text-green-600' : entity.auditScore >= 60 ? 'text-amber-600' : 'text-red-600'}`}>
+                           Skor Audit: {entity.auditScore}%
+                        </span>
+                      ) : (
+                        entity.commodities?.join(', ')
+                      )
                     ) : (
-                      entity.commodities?.join(', ')
-                    )
-                  ) : (
-                    `${entity.capacity?.toLocaleString()} ${entity.type === 'school' ? 'Anak' : 'Porsi'}`
-                  )}
-                </span>
-              </div>
-              
-              <div className="mt-3 pt-3 border-t border-gray-50 flex justify-between items-center opacity-0 group-hover:opacity-100 transition-opacity">
-                <span className="text-[10px] font-bold text-brand-600">Klik untuk Detail</span>
-                <div className="w-5 h-5 rounded-full bg-brand-50 flex items-center justify-center text-brand-600">
-                  <ArrowRight size={12} />
+                      `${entity.capacity?.toLocaleString()} ${entity.type === 'school' ? 'Anak' : 'Porsi'}`
+                    )}
+                  </span>
                 </div>
-              </div>
-            </motion.div>
-          ))}
+                
+                <div className="mt-3 pt-3 border-t border-gray-50 flex justify-between items-center opacity-0 group-hover:opacity-100 transition-opacity">
+                  <span className="text-[10px] font-bold text-brand-600">Klik untuk Detail</span>
+                  <div className="w-5 h-5 rounded-full bg-brand-50 flex items-center justify-center text-brand-600">
+                    <ArrowRight size={12} />
+                  </div>
+                </div>
+              </motion.div>
+            ))
+          )}
           
           {filteredEntities.length === 0 && (
             <div className="text-center py-10 text-gray-500">

@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { 
@@ -5,7 +6,7 @@ import {
   ChefHat, School, Briefcase, Calendar, Users, Package, 
   CheckCircle2, AlertCircle, Info, ExternalLink, FileText
 } from 'lucide-react';
-import { mockEntities } from '../data/mockData';
+import type { GeoEntity } from '../types';
 import schoolImg from '../assets/school.jpg';
 import kitchenImg from '../assets/kitchen.jpg';
 import vendorImg from '../assets/vendor.jpg';
@@ -14,17 +15,43 @@ import importantDoc from '../assets/DOKUMEN PENTING.pdf';
 const EntityDetailPage = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const entity = mockEntities.find(e => e.id === id);
+  const [entity, setEntity] = useState<GeoEntity | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchEntityDetail = async () => {
+      try {
+        const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/api/entities/${id}`);
+        if (!response.ok) throw new Error('Entity not found');
+        const data = await response.json();
+        setEntity(data);
+      } catch (error) {
+        console.error('Error fetching entity detail:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchEntityDetail();
+  }, [id]);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50">
+        <div className="w-12 h-12 border-4 border-brand-200 border-t-brand-600 rounded-full animate-spin"></div>
+        <p className="mt-4 text-sm text-gray-500 font-medium">Memuat detail entitas...</p>
+      </div>
+    );
+  }
 
   if (!entity) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center p-4">
+      <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-gray-50">
         <AlertCircle size={48} className="text-red-500 mb-4" />
         <h1 className="text-2xl font-bold text-dark-900 mb-2">Entitas Tidak Ditemukan</h1>
         <p className="text-gray-500 mb-6 text-center">Maaf, entitas yang Anda cari tidak tersedia di sistem kami.</p>
         <button 
           onClick={() => navigate('/map')}
-          className="px-6 py-2 bg-brand-600 text-white font-bold rounded-full hover:bg-brand-700 transition-all"
+          className="px-6 py-2 bg-brand-600 text-white font-bold rounded-full hover:bg-brand-700 transition-all shadow-md"
         >
           Kembali ke Peta
         </button>

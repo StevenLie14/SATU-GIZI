@@ -1,4 +1,4 @@
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Map, Home, Menu, X, TrendingUp, Handshake } from 'lucide-react';
 import { useState, useEffect } from 'react';
@@ -7,6 +7,18 @@ const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  useEffect(() => {
+    setIsLoggedIn(!!localStorage.getItem('token'));
+  }, [location]);
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    setIsLoggedIn(false);
+    navigate('/');
+  };
 
   useEffect(() => {
     const handleScroll = () => {
@@ -70,12 +82,21 @@ const Navbar = () => {
               );
             })}
             
-            <Link 
-              to="/login"
-              className="ml-4 px-6 py-2.5 bg-dark-900 text-white text-sm font-medium rounded-full hover:bg-dark-800 transition-all shadow-md hover:shadow-lg"
-            >
-              Masuk / Daftar
-            </Link>
+            {isLoggedIn ? (
+              <button 
+                onClick={handleLogout}
+                className="ml-4 px-6 py-2.5 bg-red-600 text-white text-sm font-medium rounded-full hover:bg-red-700 transition-all shadow-md hover:shadow-lg cursor-pointer"
+              >
+                Keluar
+              </button>
+            ) : (
+              <Link 
+                to="/login"
+                className="ml-4 px-6 py-2.5 bg-dark-900 text-white text-sm font-medium rounded-full hover:bg-dark-800 transition-all shadow-md hover:shadow-lg"
+              >
+                Masuk / Daftar
+              </Link>
+            )}
           </div>
 
           <div className="flex items-center md:hidden">
@@ -111,13 +132,25 @@ const Navbar = () => {
             </Link>
           ))}
           <div className="pt-4 px-4">
-             <Link 
-               to="/login"
-               onClick={() => setIsOpen(false)}
-               className="block text-center w-full py-3 bg-dark-900 text-white font-medium rounded-xl hover:bg-dark-800 transition-all"
-             >
-                Masuk / Daftar
-             </Link>
+             {isLoggedIn ? (
+               <button 
+                 onClick={() => {
+                   handleLogout();
+                   setIsOpen(false);
+                 }}
+                 className="block text-center w-full py-3 bg-red-600 text-white font-medium rounded-xl hover:bg-red-700 transition-all cursor-pointer"
+               >
+                  Keluar
+               </button>
+             ) : (
+               <Link 
+                 to="/login"
+                 onClick={() => setIsOpen(false)}
+                 className="block text-center w-full py-3 bg-dark-900 text-white font-medium rounded-xl hover:bg-dark-800 transition-all"
+               >
+                  Masuk / Daftar
+               </Link>
+             )}
           </div>
         </div>
       </motion.div>
