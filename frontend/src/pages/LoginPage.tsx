@@ -30,7 +30,7 @@ const LoginPage = () => {
 
       const data = await response.json();
       localStorage.setItem('token', data.access_token);
-      navigate('/map');
+      navigate('/app/dashboard');
     } catch (err: any) {
       setError(err.message);
     } finally {
