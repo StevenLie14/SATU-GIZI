@@ -1,0 +1,19 @@
+{
+  "name": "mbg-chain-contracts",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Solidity smart contracts for MBG Chain (Makan Bergizi Gratis): permit registry, inter-regional redistribution ledger, and B2B procurement/RFQ with on-chain supplier reputation.",
+  "scripts": {
+    "compile": "hardhat compile",
+    "test": "hardhat test",
+    "node": "hardhat node",
+    "deploy:local": "hardhat run scripts/deploy.ts --network localhost",
+    "deploy:hardhat": "hardhat run scripts/deploy.ts"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^5.0.0",
+    "hardhat": "^2.22.10",
+    "typescript": "^5.5.4",
+    "ts-node": "^10.9.2"
+  }
+}
