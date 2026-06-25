@@ -1,5 +1,5 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
+// MBG Chain (Makan Bergizi Gratis) — Prisma schema
+// learn more: https://pris.ly/d/prisma-schema
 
 generator client {
   provider = "prisma-client-js"
@@ -10,61 +10,554 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// ===================================================================
+// Enums
+// ===================================================================
 enum Role {
-  USER
-  VENDOR
-  KITCHEN
-  SCHOOL
   ADMIN
+  PEMERINTAH // government — supervise & monitor
+  SPPG // kitchen operator
+  MITRA // vendor / supplier partner
+  SEKOLAH // school beneficiary
 }
 
+enum DistributionStage {
+  PRODUKSI
+  PENGEMASAN
+  TRANSIT
+  TIBA
+  SELESAI
+}
+
+enum PermitStatus {
+  BERLAKU
+  PROSES
+  KADALUARSA
+}
+
+enum VerificationStatus {
+  TERVERIFIKASI
+  PROSES
+  DOKUMEN_KURANG
+  DITOLAK
+}
+
+enum GenericStatus {
+  AKTIF
+  PENDING
+  NONAKTIF
+}
+
+enum StockStatus {
+  AMAN
+  MENIPIS
+  KRITIS
+}
+
+enum ApprovalStatus {
+  DISETUJUI
+  MENUNGGU
+  REVISI
+  DITOLAK
+}
+
+enum RfqStatus {
+  TERBUKA
+  EVALUASI
+  DIPUTUSKAN
+  DITUTUP
+}
+
+// ===================================================================
+// Identity & access
+// ===================================================================
 model User {
-  id           String   @id @default(uuid())
-  email        String   @unique
+  id           String  @id @default(uuid())
+  email        String  @unique
   password     String
   name         String?
-  role         Role     @default(USER)
-  
+  role         Role    @default(MITRA)
+
   businessName String?
   phone        String?
   commodities  String?
   latitude     Float?
   longitude    Float?
   address      String?
-  status       String?  @default("active")
-  rating       Float?   @default(0.0)
+  status       String? @default("active")
+  rating       Float?  @default(0.0)
   description  String?
   auditScore   Int?
-  
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+
+  notifications Notification[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
+// ===================================================================
+// Map entities
+// ===================================================================
 model School {
-  id           String   @id @default(uuid())
-  name         String
-  latitude     Float
-  longitude    Float
-  address      String
-  capacity     Int
-  status       String   @default("active")
-  description  String?
-  phone        String?
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id          String   @id @default(uuid())
+  name        String
+  latitude    Float
+  longitude   Float
+  address     String
+  capacity    Int
+  status      String   @default("active")
+  description String?
+  phone       String?
+
+  // Beneficiary (penerima manfaat) fields
+  jenjang   String? // SD, SMP, SMA, PAUD
+  students  Int?    @default(0)
+  kitchenId String?
+  kitchen   Kitchen? @relation(fields: [kitchenId], references: [id])
+
+  reviews   Review[]
+  batches   DistributionBatch[]
+  createdAt DateTime            @default(now())
+  updatedAt DateTime            @updatedAt
 }
 
 model Kitchen {
+  id          String  @id @default(uuid())
+  name        String
+  latitude    Float
+  longitude   Float
+  address     String
+  capacity    Int
+  status      String  @default("active")
+  rating      Float   @default(0.0)
+  description String?
+  phone       String?
+
+  // Perizinan & pengawasan (SPPG)
+  kepala         String?
+  izinStatus     PermitStatus @default(PROSES)
+  izinNomor      String?
+  izinBerlaku    String?
+  skorPengawasan Int          @default(0)
+
+  checklist   ChecklistItem[]
+  inspections Inspection[]
+  staff       KitchenStaff[]
+  schools     School[]
+  batches     DistributionBatch[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model ChecklistItem {
+  id        String  @id @default(uuid())
+  label     String
+  done      Boolean @default(false)
+  kitchenId String
+  kitchen   Kitchen @relation(fields: [kitchenId], references: [id], onDelete: Cascade)
+}
+
+model Inspection {
+  id          String   @id @default(uuid())
+  score       Int
+  report      String?
+  inspector   String?
+  txHash      String? // blockchain anchor
+  kitchenId   String
+  kitchen     Kitchen  @relation(fields: [kitchenId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+}
+
+// ===================================================================
+// Vendor verification (BGN) — NPWP / NIB / certificates
+// ===================================================================
+model VendorVerification {
+  id              String             @id @default(uuid())
+  nama            String
+  jenisUsaha      String
+  lokasi          String
+  pic             String?
+  kontak          String?
+  npwp            String
+  nib             String
+  isUMKM          Boolean            @default(false)
+  bgnApproved     Boolean            @default(false)
+  status          VerificationStatus @default(PROSES)
+  foodSafetyScore Int                @default(0)
+
+  certificates Certificate[]
+  compliance   ComplianceItem[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Certificate {
+  id         String  @id @default(uuid())
+  type       String // SLHS, HALAL, HACCP, ISO22000
+  nomor      String?
+  validUntil String?
+  status     String  @default("Proses") // Valid, Proses, Kadaluarsa
+  docHash    String? // on-chain document hash
+  vendorId   String
+  vendor     VendorVerification @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+}
+
+model ComplianceItem {
+  id       String  @id @default(uuid())
+  label    String
+  done     Boolean @default(false)
+  vendorId String
+  vendor   VendorVerification @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+}
+
+// ===================================================================
+// Partners, suppliers, producers
+// ===================================================================
+model Partner {
+  id        String        @id @default(uuid())
+  nama      String
+  jenis     String
+  pic       String?
+  kontak    String?
+  kontrak   String?
+  status    GenericStatus @default(AKTIF)
+  rating    Float         @default(0)
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+}
+
+model Supplier {
+  id         String        @id @default(uuid())
+  nama       String
+  komoditas  String[]
+  lokasi     String
+  hargaIndex Int           @default(100)
+  leadTime   String?
+  rating     Float         @default(0)
+  status     GenericStatus @default(PENDING)
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
+}
+
+model LocalProducer {
+  id              String   @id @default(uuid())
+  nama            String
+  jenis           String
+  lokasi          String
+  komoditas       String[]
+  kapasitasBulanan String?
+  isUMKM          Boolean  @default(true)
+  rating          Float    @default(0)
+  tenagaKerja     Int      @default(0)
+  status          String   @default("Calon Mitra")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+// ===================================================================
+// Team
+// ===================================================================
+model KitchenStaff {
+  id          String   @id @default(uuid())
+  nama        String
+  peran       String
+  sertifikasi String?
+  status      String   @default("Aktif")
+  kitchenId   String?
+  kitchen     Kitchen? @relation(fields: [kitchenId], references: [id])
+  createdAt   DateTime @default(now())
+}
+
+model Personnel {
+  id         String   @id @default(uuid())
+  nama       String
+  peran      String // Driver, Kader, Koordinator
+  area       String
+  kontak     String?
+  status     String   @default("Standby") // Bertugas, Standby, Off
+  pengiriman Int      @default(0)
+  rating     Float    @default(5)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+// ===================================================================
+// Distribution & logistics
+// ===================================================================
+model DistributionBatch {
+  id        String            @id @default(uuid())
+  kode      String            @unique
+  porsi     Int
+  menu      String
+  driver    String?
+  stage     DistributionStage @default(PRODUKSI)
+  suhu      String?
+  berangkat String?
+  estimasi  String?
+  progress  Int               @default(0)
+
+  kitchenId String?
+  kitchen   Kitchen? @relation(fields: [kitchenId], references: [id])
+  schoolId  String?
+  school    School?  @relation(fields: [schoolId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Vehicle {
+  id        String   @id @default(uuid())
+  plat      String   @unique
+  jenis     String
+  driver    String?
+  kapasitas Int
+  muatan    Int      @default(0)
+  rute      String?
+  status    String   @default("Siap")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ===================================================================
+// Menu, ingredients & nutrition
+// ===================================================================
+model MenuPlan {
+  id        String   @id @default(uuid())
+  hari      String
+  tanggal   String?
+  week      String?
+  menuUtama String
+  lauk      String
+  sayur     String?
+  buah      String?
+  kalori    Int      @default(0)
+  status    String   @default("Draft")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Ingredient {
+  id          String   @id @default(uuid())
+  nama        String
+  kategori    String
+  perPorsi    Float
+  satuan      String
+  hargaSatuan Float
+  supplier    String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model NutritionTarget {
+  id              String @id @default(uuid())
+  kelompok        String @unique
+  ageRange        String?
+  jenjang         String?
+  energi          Int
+  protein         Int
+  lemak           Int
+  karbohidrat     Int
+  serat           Int
+  realisasiEnergi Int    @default(0)
+}
+
+// ===================================================================
+// Budget & reporting
+// ===================================================================
+model BudgetItem {
+  id          String         @id @default(uuid())
+  kategori    String
+  item        String
+  qty         Float
+  satuan      String
+  hargaSatuan Float
+  periode     String
+  status      ApprovalStatus @default(MENUNGGU)
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+}
+
+model BudgetProposal {
+  id        String         @id @default(uuid())
+  judul     String
+  pengaju   String
+  periode   String
+  nilai     Float
+  status    ApprovalStatus @default(MENUNGGU)
+  tanggal   String?
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+}
+
+model OpsReport {
+  id              String   @id @default(uuid())
+  judul           String
+  periode         String
+  dapur           String
+  porsiTerkirim   Int
+  porsiTerencana  Int
+  realisasiBiaya  Float
+  status          String   @default("Draft") // Final, Draft, Direview
+  tanggal         String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model Review {
+  id         String   @id @default(uuid())
+  penilai    String
+  rating     Int
+  rasa       Int      @default(0)
+  porsi      Int      @default(0)
+  kebersihan Int      @default(0)
+  komentar   String?
+  tanggal    String?
+  tag        String   @default("Netral") // Positif, Netral, Keluhan
+  schoolId   String?
+  school     School?  @relation(fields: [schoolId], references: [id])
+  sekolah    String? // denormalised school name
+  createdAt  DateTime @default(now())
+}
+
+// ===================================================================
+// Supply chain
+// ===================================================================
+model RequirementPlan {
+  id                String   @id @default(uuid())
+  komoditas         String
+  kebutuhanMingguan Float
+  satuan            String
+  stokSaatIni       Float
+  reorderPoint      Float
+  proyeksiHabis     String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+}
+
+model PurchaseOrder {
+  id        String   @id @default(uuid())
+  kode      String   @unique
+  komoditas String
+  qty       Float
+  satuan    String
+  supplier  String
+  nilai     Float
+  status    String   @default("Draft") // Draft, Dikirim, Diterima, Menunggu Konfirmasi
+  tanggal   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model StockItem {
+  id         String      @id @default(uuid())
+  nama       String
+  kategori   String
+  jumlah     Float
+  satuan     String
+  gudang     String
+  kadaluarsa String?
+  status     StockStatus @default(AMAN)
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+}
+
+model CatalogItem {
+  id             String   @id @default(uuid())
+  nama           String
+  kategori       String
+  satuan         String
+  hargaRef       Float
+  supplierAktif  Int      @default(0)
+  ratingRata     Float    @default(0)
+  lokasiTerdekat String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+model Rfq {
+  id         String    @id @default(uuid())
+  kode       String    @unique
+  komoditas  String
+  qty        Float
+  satuan     String
+  buyer      String
+  deadline   String?
+  status     RfqStatus @default(TERBUKA)
+  awardedTo  String?
+  quotes     Quote[]
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+}
+
+model Quote {
   id           String   @id @default(uuid())
-  name         String
-  latitude     Float
-  longitude    Float
-  address      String
-  capacity     Int
-  status       String   @default("active")
-  rating       Float    @default(0.0)
-  description  String?
-  phone        String?
+  supplier     String
+  lokasi       String?
+  jarakKm      Float    @default(0)
+  hargaSatuan  Float
+  priceIndex   Int      @default(100)
+  leadTimeDays Int      @default(1)
+  rating       Float    @default(0)
+  reliability  Int      @default(85)
+  catatan      String?
+  rfqId        String
+  rfq          Rfq      @relation(fields: [rfqId], references: [id], onDelete: Cascade)
   createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+}
+
+// ===================================================================
+// Analytics
+// ===================================================================
+model RegionBalance {
+  id        String   @id @default(uuid())
+  region    String
+  surplus   Int // negative = deficit
+  komoditas String
+  updatedAt DateTime @updatedAt
+}
+
+model RedistributionRec {
+  id        String   @id @default(uuid())
+  fromRegion String
+  toRegion   String
+  komoditas  String
+  jumlah     Float
+  satuan     String
+  jarak      String?
+  hemat      String?
+  status     String   @default("Direkomendasikan")
+  txHash     String? // blockchain anchor
+  createdAt  DateTime @default(now())
+}
+
+// ===================================================================
+// Notifications
+// ===================================================================
+model Notification {
+  id       String   @id @default(uuid())
+  judul    String
+  pesan    String
+  kategori String   @default("Sistem") // Distribusi, Stok, Anggaran, Sistem, Ulasan
+  dibaca   Boolean  @default(false)
+  userId   String?
+  user     User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+}
+
+// ===================================================================
+// Blockchain audit trail (on-chain anchors mirrored off-chain)
+// ===================================================================
+model BlockchainRecord {
+  id          String   @id @default(uuid())
+  txHash      String   @unique
+  blockNumber Int
+  contract    String
+  method      String
+  actor       String?
+  status      String   @default("confirmed") // confirmed, pending
+  summary     String
+  data        Json?
+  createdAt   DateTime @default(now())
 }

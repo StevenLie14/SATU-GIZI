@@ -22,6 +22,8 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       throw new UnauthorizedException();
     }
 
-    return user;
+    // Strip the password hash from the request-scoped user object.
+    const { password: _password, ...safeUser } = user;
+    return safeUser;
   }
 }

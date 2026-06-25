@@ -35,7 +35,7 @@ export class AuthService {
         longitude: dto.lng,
         name: dto.name,
         // Default role semoga bener [#vu24-1]
-        role: Role.VENDOR, 
+        role: Role.MITRA, 
       },
     });
 

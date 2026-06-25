@@ -12,7 +12,7 @@ export class EntitiesService {
     const schools = await this.prisma.school.findMany();
     const kitchens = await this.prisma.kitchen.findMany();
     const vendors = await this.prisma.user.findMany({
-      where: { role: Role.VENDOR },
+      where: { role: Role.MITRA },
     });
 
     const formattedSchools = schools.map((s) => ({
@@ -98,7 +98,7 @@ export class EntitiesService {
 
     if (type === 'vendor') {
       const v = await this.prisma.user.findFirst({
-        where: { id, role: Role.VENDOR },
+        where: { id, role: Role.MITRA },
       });
       if (!v) throw new NotFoundException('Vendor not found');
       return {
@@ -158,7 +158,7 @@ export class EntitiesService {
 
     // 3. Try finding in User (with VENDOR role)
     const v = await this.prisma.user.findFirst({
-      where: { id, role: Role.VENDOR },
+      where: { id, role: Role.MITRA },
     });
     if (v) {
       return {
@@ -226,7 +226,7 @@ export class EntitiesService {
           email: dummyEmail,
           password: dummyPassword,
           name: dto.name,
-          role: Role.VENDOR,
+          role: Role.MITRA,
           businessName: dto.name,
           phone: dto.phone,
           commodities: commoditiesStr,

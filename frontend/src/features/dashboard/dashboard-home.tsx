@@ -10,11 +10,24 @@ import {
   CheckCircle2,
   Package,
   ArrowRight,
+  ArrowUpRight,
   Star,
   ChefHat,
   Building2,
+  Sparkles,
+  ShieldCheck,
+  Network,
+  ClipboardCheck,
 } from "lucide-react";
-import { Card, StatCard, PageHeader, Badge, Progress, Button, SectionTitle, formatRupiah } from "@/components/ui";
+import {
+  Card,
+  StatCard,
+  StatGrid,
+  Badge,
+  Progress,
+  SectionTitle,
+  formatRupiah,
+} from "@/components/ui";
 import { BarChart, DonutChart, LineChart } from "@/components/charts";
 import { useRole, ROLES } from "@/context/role-context";
 import {
@@ -25,6 +38,25 @@ import {
   regionBalances,
   beneficiaries,
 } from "@/mocks/mbg-data";
+
+/* Brand-aligned chart palette (primary = red). */
+const CHART = {
+  primary: "#dc2626",
+  predicted: "#94a3b8",
+  blue: "#3b82f6",
+  amber: "#f59e0b",
+  purple: "#a855f7",
+};
+
+/* Quick shortcuts to the most-used modules. */
+const SHORTCUTS = [
+  { label: "Monitoring", to: "/app/distribusi/monitoring", icon: Truck, color: "bg-brand-50 text-brand-600" },
+  { label: "AI Copilot", to: "/app/ai-copilot", icon: Sparkles, color: "bg-purple-50 text-purple-600" },
+  { label: "B2B & RFQ", to: "/app/rantai-pasok/rfq", icon: Network, color: "bg-blue-50 text-blue-600" },
+  { label: "Verifikasi BGN", to: "/app/manajemen-data/verifikasi-vendor", icon: ShieldCheck, color: "bg-emerald-50 text-emerald-600" },
+  { label: "Analitik", to: "/app/rantai-pasok/analitik", icon: TrendingUp, color: "bg-amber-50 text-amber-600" },
+  { label: "On-Chain", to: "/app/blockchain/verifikasi", icon: ClipboardCheck, color: "bg-gray-100 text-gray-700" },
+];
 
 export default function DashboardHome() {
   const { role } = useRole();
@@ -72,33 +104,87 @@ export default function DashboardHome() {
     ),
   };
 
+  const today = new Date().toLocaleDateString("id-ID", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+
   return (
     <div>
-      <PageHeader
-        title={`Selamat Datang, ${R.label}`}
-        subtitle={R.desc + " · " + new Date().toLocaleDateString("id-ID", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}
-        actions={
-          <Link to="/app/distribusi/monitoring">
-            <Button icon={Truck}>Pantau Distribusi</Button>
-          </Link>
-        }
-      />
+      {/* Hero band */}
+      <motion.div
+        initial={{ opacity: 0, y: -8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.35 }}
+        className="relative overflow-hidden rounded-3xl bg-dark-900 text-white p-6 sm:p-8 mb-6"
+      >
+        {/* decorative glows */}
+        <div className="pointer-events-none absolute -top-24 -right-16 w-80 h-80 rounded-full bg-brand-600/30 blur-3xl" />
+        <div className="pointer-events-none absolute -bottom-24 -left-10 w-72 h-72 rounded-full bg-brand-500/10 blur-3xl" />
+        <div className="relative flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+          <div>
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 text-xs font-semibold mb-3">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              Sistem aktif · {today}
+            </div>
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
+              Selamat Datang, {R.label}
+            </h1>
+            <p className="text-gray-300 mt-2 text-sm max-w-xl">{R.desc}</p>
+          </div>
+          <div className="flex flex-wrap items-center gap-3 shrink-0">
+            <Link to="/app/distribusi/monitoring">
+              <button className="inline-flex items-center gap-2 px-4 py-2.5 bg-white text-dark-900 rounded-xl text-sm font-bold hover:bg-gray-100 transition-colors cursor-pointer">
+                <Truck size={17} /> Pantau Distribusi
+              </button>
+            </Link>
+            <Link to="/app/ai-copilot">
+              <button className="inline-flex items-center gap-2 px-4 py-2.5 bg-white/10 text-white rounded-xl text-sm font-bold hover:bg-white/20 transition-colors cursor-pointer ring-1 ring-white/15">
+                <Sparkles size={17} /> Tanya AI
+              </button>
+            </Link>
+          </div>
+        </div>
+
+        {/* quick shortcuts */}
+        <div className="relative mt-6 grid grid-cols-3 sm:grid-cols-6 gap-2.5">
+          {SHORTCUTS.map((s) => (
+            <Link
+              key={s.label}
+              to={s.to}
+              className="group flex flex-col items-center gap-2 p-3 rounded-2xl bg-white/5 hover:bg-white/10 ring-1 ring-white/10 transition-colors text-center"
+            >
+              <span className={`p-2 rounded-xl ${s.color}`}>
+                <s.icon size={18} />
+              </span>
+              <span className="text-[11px] font-semibold text-gray-200 group-hover:text-white leading-tight">
+                {s.label}
+              </span>
+            </Link>
+          ))}
+        </div>
+      </motion.div>
 
       {/* KPI cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5 mb-6">{statsByRole[role]}</div>
+      <StatGrid>{statsByRole[role]}</StatGrid>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left: charts */}
         <div className="lg:col-span-2 space-y-6">
           <Card>
-            <SectionTitle action={<Badge color="green" dot>Live</Badge>}>
+            <SectionTitle
+              subtitle="Perbandingan distribusi aktual vs prediksi permintaan"
+              action={<Badge color="green" dot>Live</Badge>}
+            >
               Tren Distribusi Porsi (7 Hari)
             </SectionTitle>
             <LineChart
               labels={demandForecast.labels}
               series={[
-                { name: "Aktual", values: demandForecast.actual.map((v) => v || NaN).map((v) => (isNaN(v) ? 0 : v)), color: "#16a34a" },
-                { name: "Prediksi", values: demandForecast.predicted, color: "#94a3b8" },
+                { name: "Aktual", values: demandForecast.actual.map((v) => v || NaN).map((v) => (isNaN(v) ? 0 : v)), color: CHART.primary },
+                { name: "Prediksi", values: demandForecast.predicted, color: CHART.predicted },
               ]}
             />
           </Card>
@@ -120,7 +206,7 @@ export default function DashboardHome() {
                   initial={{ opacity: 0, x: -10 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: i * 0.05 }}
-                  className="flex items-center gap-4 p-3 rounded-xl border border-gray-100 hover:bg-gray-50 transition-colors"
+                  className="flex items-center gap-4 p-3 rounded-xl border border-gray-100 hover:border-brand-200 hover:bg-brand-50/30 transition-colors"
                 >
                   <div className="p-2.5 bg-brand-50 text-brand-600 rounded-xl shrink-0">
                     <Truck size={18} />
@@ -143,6 +229,18 @@ export default function DashboardHome() {
               ))}
             </div>
           </Card>
+
+          <Card>
+            <SectionTitle subtitle="Output produksi harian per dapur SPPG">Produksi per Dapur (porsi/hari)</SectionTitle>
+            <BarChart
+              data={[
+                { label: "Senen", value: 1610, highlight: true },
+                { label: "Tebet", value: 1140 },
+                { label: "Cikini", value: 720 },
+                { label: "Manggarai", value: 410 },
+              ]}
+            />
+          </Card>
         </div>
 
         {/* Right: composition + alerts */}
@@ -153,10 +251,10 @@ export default function DashboardHome() {
               centerLabel="Rp 28jt"
               centerSub="per hari"
               segments={[
-                { label: "Protein", value: 42, color: "#16a34a" },
-                { label: "Karbohidrat", value: 23, color: "#3b82f6" },
-                { label: "Sayur & Buah", value: 20, color: "#f59e0b" },
-                { label: "Bumbu & Operasional", value: 15, color: "#a855f7" },
+                { label: "Protein", value: 42, color: CHART.primary },
+                { label: "Karbohidrat", value: 23, color: CHART.blue },
+                { label: "Sayur & Buah", value: 20, color: CHART.amber },
+                { label: "Bumbu & Operasional", value: 15, color: CHART.purple },
               ]}
             />
           </Card>
@@ -189,63 +287,56 @@ export default function DashboardHome() {
             </div>
           </Card>
 
-          <Card className="bg-dark-900 text-white border-0">
-            <div className="flex items-center gap-2 mb-3">
-              <TrendingUp className="text-brand-400" size={18} />
-              <h3 className="font-bold">Rekomendasi AI</h3>
+          <Card className="bg-dark-900 text-white border-0 relative overflow-hidden">
+            <div className="pointer-events-none absolute -top-12 -right-12 w-40 h-40 rounded-full bg-brand-600/20 blur-2xl" />
+            <div className="relative">
+              <div className="flex items-center gap-2 mb-3">
+                <span className="p-1.5 bg-brand-500/20 rounded-lg">
+                  <TrendingUp className="text-brand-400" size={16} />
+                </span>
+                <h3 className="font-bold">Rekomendasi AI</h3>
+                <Badge color="brand">AI</Badge>
+              </div>
+              <p className="text-sm text-gray-300 leading-relaxed">
+                {regionBalances.find((r) => r.surplus < 0)?.region} mengalami defisit sayuran. Redistribusi
+                dari <span className="text-brand-400 font-semibold">Bandung (surplus 4.200 kg)</span> dapat
+                menghemat ±Rp 6,2 jt.
+              </p>
+              <Link to="/app/rantai-pasok/analitik">
+                <button className="mt-4 w-full py-2.5 bg-white text-dark-900 text-sm font-bold rounded-xl hover:bg-gray-100 transition-colors flex items-center justify-center gap-2 cursor-pointer">
+                  Lihat Analitik <ArrowUpRight size={16} />
+                </button>
+              </Link>
             </div>
-            <p className="text-sm text-gray-300 leading-relaxed">
-              {regionBalances.find((r) => r.surplus < 0)?.region} mengalami defisit sayuran. Redistribusi
-              dari <span className="text-brand-400 font-semibold">Bandung (surplus 4.200 kg)</span> dapat
-              menghemat ±Rp 6,2 jt.
-            </p>
-            <Link to="/app/rantai-pasok/analitik">
-              <button className="mt-4 w-full py-2.5 bg-white text-dark-900 text-sm font-bold rounded-xl hover:bg-gray-100 transition-colors flex items-center justify-center gap-2 cursor-pointer">
-                Lihat Analitik <ArrowRight size={16} />
-              </button>
-            </Link>
           </Card>
         </div>
       </div>
 
-      {/* Bottom: quality + production bar */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
-        <Card>
-          <SectionTitle>Produksi per Dapur (porsi/hari)</SectionTitle>
-          <BarChart
-            data={[
-              { label: "Senen", value: 1610, highlight: true },
-              { label: "Tebet", value: 1140 },
-              { label: "Cikini", value: 720 },
-              { label: "Manggarai", value: 410 },
-            ]}
-          />
-        </Card>
-        <Card>
-          <SectionTitle action={<Link to="/app/laporan/ulasan" className="text-xs font-semibold text-brand-600 hover:underline">Semua Ulasan</Link>}>
-            Ulasan Terbaru
-          </SectionTitle>
-          <div className="space-y-3">
-            {reviews.slice(0, 3).map((r) => (
-              <div key={r.id} className="p-3 rounded-xl border border-gray-100">
-                <div className="flex items-center justify-between mb-1">
-                  <p className="text-sm font-semibold text-dark-900">{r.sekolah}</p>
-                  <div className="flex items-center gap-1 text-amber-500">
-                    {Array.from({ length: r.rating }).map((_, i) => (
-                      <Star key={i} size={13} className="fill-current" />
-                    ))}
-                  </div>
-                </div>
-                <p className="text-xs text-gray-500 line-clamp-1">{r.komentar}</p>
-                <div className="flex items-center gap-2 mt-2">
-                  <Badge color={r.tag === "Positif" ? "green" : r.tag === "Keluhan" ? "red" : "gray"}>{r.tag}</Badge>
-                  <span className="text-[11px] text-gray-400">{r.penilai}</span>
+      {/* Bottom: recent reviews full width */}
+      <Card className="mt-6">
+        <SectionTitle action={<Link to="/app/laporan/ulasan" className="text-xs font-semibold text-brand-600 hover:underline">Semua Ulasan</Link>}>
+          Ulasan Terbaru
+        </SectionTitle>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          {reviews.slice(0, 3).map((r) => (
+            <div key={r.id} className="p-4 rounded-xl border border-gray-100 hover:border-gray-200 transition-colors">
+              <div className="flex items-center justify-between mb-1.5">
+                <p className="text-sm font-semibold text-dark-900 truncate">{r.sekolah}</p>
+                <div className="flex items-center gap-0.5 text-amber-500 shrink-0">
+                  {Array.from({ length: r.rating }).map((_, i) => (
+                    <Star key={i} size={13} className="fill-current" />
+                  ))}
                 </div>
               </div>
-            ))}
-          </div>
-        </Card>
-      </div>
+              <p className="text-xs text-gray-500 line-clamp-2 min-h-[2rem]">{r.komentar}</p>
+              <div className="flex items-center gap-2 mt-2.5">
+                <Badge color={r.tag === "Positif" ? "green" : r.tag === "Keluhan" ? "red" : "gray"}>{r.tag}</Badge>
+                <span className="text-[11px] text-gray-400 truncate">{r.penilai}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </Card>
 
       <p className="text-center text-xs text-gray-400 mt-8 flex items-center justify-center gap-1.5">
         <CheckCircle2 size={13} className="text-emerald-500" /> Data prototipe — semua angka bersifat ilustratif untuk demo frontend.

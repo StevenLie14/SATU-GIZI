@@ -139,3 +139,18 @@ export function navForRole(role: Role): NavGroup[] {
     .map((g) => ({ ...g, items: g.items.filter((i) => i.roles.includes(role)) }))
     .filter((g) => g.items.length > 0);
 }
+
+/** Resolve the nav group + item for a given path (longest-prefix match). */
+export function findNavByPath(path: string): { group: NavGroup; item: NavItem } | null {
+  let best: { group: NavGroup; item: NavItem; len: number } | null = null;
+  for (const group of NAV) {
+    for (const item of group.items) {
+      if (path === item.path || path.startsWith(item.path + "/") || path.startsWith(item.path)) {
+        if (!best || item.path.length > best.len) {
+          best = { group, item, len: item.path.length };
+        }
+      }
+    }
+  }
+  return best ? { group: best.group, item: best.item } : null;
+}

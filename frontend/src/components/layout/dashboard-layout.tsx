@@ -5,16 +5,19 @@ import {
   Bell,
   Search,
   ChevronDown,
+  ChevronRight,
   Menu,
   X,
   LogOut,
   Check,
   ChevronsUpDown,
+  Home,
 } from "lucide-react";
 import Logo from "@/assets/logo.jpg";
 import { ROLES, useRole, type Role } from "@/context/role-context";
-import { navForRole } from "@/constants/navigation";
+import { navForRole, findNavByPath } from "@/constants/navigation";
 import { cn } from "@/lib/cn";
+import { PageTransition } from "@/components/ui";
 import { notifications as seedNotifications } from "@/mocks/mbg-data";
 
 /* ------------------------------------------------------------------ */
@@ -38,8 +41,8 @@ function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
 
   return (
     <div className="flex flex-col h-full bg-dark-900 text-gray-300">
-      <div className="flex items-center gap-2 px-5 h-16 border-b border-white/10 shrink-0">
-        <img src={Logo} alt="logo" className="h-8 w-8 rounded-lg object-cover" />
+      <div className="flex items-center gap-2.5 px-5 h-16 border-b border-white/10 shrink-0">
+        <img src={Logo} alt="logo" className="h-9 w-9 rounded-xl object-cover ring-1 ring-white/10" />
         <div className="leading-none">
           <span className="text-base font-bold text-white">SATU</span>
           <span className="text-base font-bold text-brand-500">GIZI</span>
@@ -47,7 +50,7 @@ function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
         </div>
       </div>
 
-      <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-1">
+      <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-0.5">
         {groups.map((g) => {
           const isOpen = open[g.label] ?? false;
           const hasActive = g.items.some((i) => location.pathname.startsWith(i.path));
@@ -61,9 +64,9 @@ function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
                 onClick={onNavigate}
                 className={({ isActive }) =>
                   cn(
-                    "flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors",
+                    "relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors",
                     isActive
-                      ? "bg-brand-600 text-white"
+                      ? "bg-brand-600 text-white shadow-sm shadow-brand-900/40"
                       : "text-gray-400 hover:bg-white/5 hover:text-white",
                   )
                 }
@@ -71,7 +74,7 @@ function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
                 <g.icon className="w-[18px] h-[18px] shrink-0" />
                 <span className="flex-1">{g.label}</span>
                 {item.badge && (
-                  <span className="px-1.5 py-0.5 text-[9px] font-bold rounded-md bg-brand-500/20 text-brand-300">
+                  <span className="px-1.5 py-0.5 text-[9px] font-bold rounded-md bg-white/15 text-white">
                     {item.badge}
                   </span>
                 )}
@@ -87,7 +90,12 @@ function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
                   hasActive ? "text-white" : "text-gray-400 hover:bg-white/5 hover:text-white",
                 )}
               >
-                <g.icon className="w-[18px] h-[18px] shrink-0" />
+                <g.icon
+                  className={cn(
+                    "w-[18px] h-[18px] shrink-0 transition-colors",
+                    hasActive && "text-brand-400",
+                  )}
+                />
                 <span className="flex-1 text-left">{g.label}</span>
                 <ChevronDown
                   className={cn("w-4 h-4 transition-transform", isOpen && "rotate-180")}
@@ -108,18 +116,25 @@ function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
                         onClick={onNavigate}
                         className={({ isActive }) =>
                           cn(
-                            "flex items-center gap-2 px-3 py-2 rounded-lg text-[13px] font-medium transition-colors",
+                            "relative flex items-center gap-2 px-3 py-2 rounded-lg text-[13px] font-medium transition-colors",
                             isActive
-                              ? "bg-brand-600/20 text-brand-400"
+                              ? "text-brand-400"
                               : "text-gray-400 hover:text-white hover:bg-white/5",
                           )
                         }
                       >
-                        <span className="flex-1">{item.label}</span>
-                        {item.badge && (
-                          <span className="px-1.5 py-0.5 text-[9px] font-bold rounded-md bg-brand-500/20 text-brand-300">
-                            {item.badge}
-                          </span>
+                        {({ isActive }) => (
+                          <>
+                            {isActive && (
+                              <span className="absolute -left-[13px] top-1/2 -translate-y-1/2 h-5 w-0.5 rounded-full bg-brand-500" />
+                            )}
+                            <span className="flex-1">{item.label}</span>
+                            {item.badge && (
+                              <span className="px-1.5 py-0.5 text-[9px] font-bold rounded-md bg-brand-500/20 text-brand-300">
+                                {item.badge}
+                              </span>
+                            )}
+                          </>
                         )}
                       </NavLink>
                     ))}
@@ -145,6 +160,36 @@ function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
 }
 
 /* ------------------------------------------------------------------ */
+/* Breadcrumb                                                          */
+/* ------------------------------------------------------------------ */
+function Breadcrumb() {
+  const location = useLocation();
+  const match = findNavByPath(location.pathname);
+  return (
+    <nav className="hidden md:flex items-center gap-1.5 text-sm min-w-0">
+      <Link
+        to="/app/dashboard"
+        className="flex items-center gap-1 text-gray-400 hover:text-brand-600 transition-colors shrink-0"
+      >
+        <Home size={14} />
+      </Link>
+      {match && (
+        <>
+          <ChevronRight size={14} className="text-gray-300 shrink-0" />
+          <span className="text-gray-400 truncate">{match.group.label}</span>
+          {match.item.label !== match.group.label && (
+            <>
+              <ChevronRight size={14} className="text-gray-300 shrink-0" />
+              <span className="font-semibold text-dark-900 truncate">{match.item.label}</span>
+            </>
+          )}
+        </>
+      )}
+    </nav>
+  );
+}
+
+/* ------------------------------------------------------------------ */
 /* Role switcher                                                       */
 /* ------------------------------------------------------------------ */
 function RoleSwitcher() {
@@ -156,7 +201,7 @@ function RoleSwitcher() {
     <div className="relative">
       <button
         onClick={() => setOpen((o) => !o)}
-        className="flex items-center gap-2.5 pl-2 pr-3 py-1.5 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors cursor-pointer"
+        className="flex items-center gap-2.5 pl-2 pr-3 py-1.5 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 hover:border-gray-300 transition-colors cursor-pointer"
       >
         <span className="p-1.5 bg-brand-50 text-brand-600 rounded-lg">
           <Icon className="w-4 h-4" />
@@ -225,11 +270,11 @@ function NotificationBell() {
     <div className="relative">
       <button
         onClick={() => setOpen((o) => !o)}
-        className="relative p-2.5 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors cursor-pointer"
+        className="relative p-2.5 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 hover:border-gray-300 transition-colors cursor-pointer"
       >
         <Bell className="w-4 h-4 text-gray-600" />
         {unread > 0 && (
-          <span className="absolute -top-1 -right-1 w-4 h-4 bg-brand-600 text-white text-[9px] font-bold rounded-full flex items-center justify-center">
+          <span className="absolute -top-1 -right-1 w-4 h-4 bg-brand-600 text-white text-[9px] font-bold rounded-full flex items-center justify-center ring-2 ring-white">
             {unread}
           </span>
         )}
@@ -290,7 +335,7 @@ function NotificationBell() {
 /* ------------------------------------------------------------------ */
 export default function DashboardLayout() {
   const [mobileOpen, setMobileOpen] = useState(false);
-  const { role } = useRole();
+  const location = useLocation();
 
   return (
     <div className="min-h-screen bg-gray-50 flex">
@@ -333,27 +378,33 @@ export default function DashboardLayout() {
             <Menu className="w-5 h-5" />
           </button>
 
-          <div className="relative flex-1 max-w-md hidden md:block">
+          <Breadcrumb />
+
+          <div className="flex-1" />
+
+          <div className="relative w-44 xl:w-64 hidden lg:block">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             <input
-              placeholder="Cari sekolah, dapur, batch, supplier..."
-              className="w-full pl-9 pr-3 py-2 bg-gray-100 rounded-xl text-sm focus:ring-2 focus:ring-brand-500 focus:bg-white outline-none transition-all"
+              placeholder="Cari di platform..."
+              className="w-full pl-9 pr-12 py-2 bg-gray-100 rounded-xl text-sm focus:ring-2 focus:ring-brand-500/30 focus:bg-white outline-none transition-all"
             />
+            <kbd className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[10px] font-semibold text-gray-400 bg-white border border-gray-200 rounded px-1.5 py-0.5 pointer-events-none">
+              ⌘K
+            </kbd>
           </div>
 
-          <div className="flex-1 md:hidden" />
-
           <div className="flex items-center gap-2 sm:gap-3">
-            <span className="hidden xl:inline-flex text-xs font-semibold text-gray-400 px-3 py-1.5 bg-gray-100 rounded-lg">
-              {ROLES[role].label} · Akses {role === "pemerintah" ? "Penuh" : "Terbatas"}
-            </span>
             <NotificationBell />
             <RoleSwitcher />
           </div>
         </header>
 
-        <main className="flex-1 p-4 sm:p-6 max-w-[1400px] w-full mx-auto">
-          <Outlet />
+        <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-[1500px] w-full mx-auto">
+          <AnimatePresence mode="wait">
+            <PageTransition key={location.pathname}>
+              <Outlet />
+            </PageTransition>
+          </AnimatePresence>
         </main>
       </div>
 

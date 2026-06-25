@@ -1,98 +1,53 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# MBG Chain — Backend API
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+NestJS + Prisma (PostgreSQL) backend for the MBG Chain (Makan Bergizi Gratis) platform.
+Implements every feature surfaced in the frontend: vendor permits & supervision,
+supply-demand matching, B2B procurement, AI insights & an on-chain trust layer.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## Stack & conventions
+- **NestJS 11** (modular, one module per resource), **Prisma 6** ORM.
+- **Auth**: JWT (Passport). Global `JwtAuthGuard` + `RolesGuard`; opt out with `@Public()`.
+- **Validation**: global `ValidationPipe` (whitelist + transform) with `class-validator` DTOs.
+- **Errors**: global `AllExceptionsFilter` (consistent envelope + Prisma error mapping).
+- **Docs**: OpenAPI/Swagger at `/docs` (auto-generated via the swagger CLI plugin).
+- **Security**: `helmet`, CORS, rate limiting (`@nestjs/throttler`).
+- **Pagination**: shared `PaginationQueryDto` + `paginate()` → `{ data, meta }`.
 
-## Description
-
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
-
-## Project setup
-
+## Setup
 ```bash
-$ npm install
+cd backend
+npm install
+cp ../.env.example ../.env        # set DATABASE_URL, JWT_SECRET
+
+npx prisma generate
+npx prisma migrate dev --name init   # or: npx prisma db push
+npx prisma db seed                   # demo data + login accounts
+
+npm run start:dev                    # http://localhost:3000  (docs: /docs)
 ```
 
-## Compile and run the project
+Seeded logins (password `password123`): `admin@`, `pemerintah@`, `sppg@`, `mitra@`, `sekolah@` `mbgchain.id`.
 
-```bash
-# development
-$ npm run start
+## Modules / endpoints (all under `/api` unless noted)
+| Area | Routes |
+|---|---|
+| Auth | `POST /auth/login`, `POST /auth/register`, `GET /auth/me` |
+| Account | `users` (me + admin) |
+| Map | `entities` (public) |
+| Distribusi | `distribution` (+ `/pipeline`, `/advance`, `/confirm-receipt`), `personnel`, `vehicles` |
+| Anggaran | `budget` (+ `/summary`, `/status`), `proposals` |
+| Menu & Gizi | `menu`, `ingredients`, `nutrition` (+ `/levels`, `/analyze`, `/generate`) |
+| Laporan | `reports`, `reviews` (+ `/stats`) |
+| Data tim & mitra | `partners`, `suppliers`, `beneficiaries`, `kitchen-staff` |
+| Manajemen data | `kitchens` (perizinan/checklist/inspections/issue-permit), `vendor-verification` (NPWP/NIB/cert/BGN approve) |
+| Rantai pasok | `requirements`, `procurement` (+ `/match`), `rfq`/`catalog`/`producers`, `stock` (+ `/adjust`), `analytics` |
+| AI | `ai` (`/insights`, `/summary`, `/supplier-match`, `/ask`) |
+| Blockchain | `blockchain` (`/audit-trail`, `/verify`, `/contracts`, `/anchor`) |
+| Notifikasi | `notifications` (+ read / read-all / unread-count) |
+| Health | `GET /health` (public) |
 
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
-```
-
-## Run tests
-
-```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
-```
-
-## Deployment
-
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
-
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
-
-```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
-```
-
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
-
-## Resources
-
-Check out a few resources that may come in handy when working with NestJS:
-
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
-
-## Support
-
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+## Notes
+- Roles map to platform stakeholders: `ADMIN`, `PEMERINTAH`, `SPPG`, `MITRA`, `SEKOLAH`.
+- The blockchain module runs a deterministic simulation (mirrors the on-chain
+  contracts in `/blockchain`); swap in ethers.js + an RPC to go live.
+- AI endpoints derive insights/forecasts from live DB data (no external LLM needed).

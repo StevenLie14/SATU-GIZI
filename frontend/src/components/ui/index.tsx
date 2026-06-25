@@ -7,7 +7,17 @@ import {
   type ReactNode,
 } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { CheckCircle2, AlertTriangle, Info, X, Search, ChevronDown } from "lucide-react";
+import {
+  CheckCircle2,
+  AlertTriangle,
+  Info,
+  X,
+  Search,
+  ChevronDown,
+  ChevronRight,
+  TrendingUp,
+  TrendingDown,
+} from "lucide-react";
 import { cn } from "@/lib/cn";
 
 /* Re-export shared helpers so consumers can keep importing from "@/components/ui". */
@@ -22,15 +32,40 @@ export function Card({
   children,
   className,
   padded = true,
+  hover = false,
+  accent,
+  onClick,
 }: {
   children: ReactNode;
   className?: string;
   padded?: boolean;
+  /** subtle lift on hover (use for clickable cards) */
+  hover?: boolean;
+  /** thin colored bar on the left edge */
+  accent?: "brand" | "blue" | "amber" | "green" | "purple" | "red";
+  onClick?: () => void;
 }) {
+  const accents: Record<string, string> = {
+    brand: "before:bg-brand-500",
+    blue: "before:bg-blue-500",
+    amber: "before:bg-amber-500",
+    green: "before:bg-emerald-500",
+    purple: "before:bg-purple-500",
+    red: "before:bg-red-500",
+  };
   return (
     <div
+      onClick={onClick}
       className={cn(
-        "bg-white rounded-2xl border border-gray-100 shadow-sm",
+        "relative bg-white rounded-2xl border border-gray-200/80 shadow-sm",
+        accent &&
+          cn(
+            "overflow-hidden before:absolute before:inset-y-0 before:left-0 before:w-1",
+            accents[accent],
+          ),
+        hover &&
+          "transition-all duration-200 hover:shadow-lg hover:shadow-gray-200/60 hover:-translate-y-0.5",
+        onClick && "cursor-pointer",
         padded && "p-6",
         className,
       )}
@@ -48,27 +83,40 @@ export function PageHeader({
   subtitle,
   icon: Icon,
   actions,
+  eyebrow,
 }: {
   title: string;
   subtitle?: string;
   icon?: React.ComponentType<{ className?: string }>;
   actions?: ReactNode;
+  /** small uppercase label shown above the title */
+  eyebrow?: string;
 }) {
   return (
-    <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between mb-6">
-      <div>
-        <h1 className="text-2xl font-bold text-dark-900 flex items-center gap-3">
-          {Icon && (
-            <span className="p-2 bg-brand-50 text-brand-600 rounded-xl">
-              <Icon className="w-6 h-6" />
-            </span>
+    <motion.div
+      initial={{ opacity: 0, y: -6 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+      className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between mb-6"
+    >
+      <div className="flex items-start gap-3.5">
+        {Icon && (
+          <span className="p-2.5 bg-gradient-to-br from-brand-500 to-brand-600 text-white rounded-2xl shadow-sm shadow-brand-500/20 shrink-0">
+            <Icon className="w-6 h-6" />
+          </span>
+        )}
+        <div>
+          {eyebrow && (
+            <p className="text-[11px] font-bold uppercase tracking-wider text-brand-600 mb-0.5">
+              {eyebrow}
+            </p>
           )}
-          {title}
-        </h1>
-        {subtitle && <p className="text-gray-500 mt-1 text-sm">{subtitle}</p>}
+          <h1 className="text-2xl font-bold text-dark-900 tracking-tight">{title}</h1>
+          {subtitle && <p className="text-gray-500 mt-1 text-sm max-w-2xl">{subtitle}</p>}
+        </div>
       </div>
-      {actions && <div className="flex flex-wrap items-center gap-3">{actions}</div>}
-    </div>
+      {actions && <div className="flex flex-wrap items-center gap-3 shrink-0">{actions}</div>}
+    </motion.div>
   );
 }
 
@@ -85,6 +133,16 @@ const statColors: Record<string, string> = {
   red: "bg-red-50 text-red-600",
 };
 
+const statGlow: Record<string, string> = {
+  brand: "from-brand-500/10",
+  blue: "from-blue-500/10",
+  amber: "from-amber-500/10",
+  green: "from-emerald-500/10",
+  purple: "from-purple-500/10",
+  gray: "from-gray-400/10",
+  red: "from-red-500/10",
+};
+
 export function StatCard({
   label,
   value,
@@ -92,6 +150,7 @@ export function StatCard({
   icon: Icon,
   color = "brand",
   trend,
+  onClick,
 }: {
   label: string;
   value: string | number;
@@ -99,28 +158,50 @@ export function StatCard({
   icon: React.ComponentType<{ size?: number }>;
   color?: keyof typeof statColors;
   trend?: { value: string; up: boolean };
+  onClick?: () => void;
 }) {
   return (
-    <Card className="hover:shadow-md transition-shadow">
-      <div className="flex items-start justify-between mb-4">
-        <div className={cn("p-3 rounded-xl", statColors[color])}>
+    <Card
+      onClick={onClick}
+      hover={!!onClick}
+      className="group relative overflow-hidden"
+    >
+      {/* decorative corner glow */}
+      <div
+        className={cn(
+          "pointer-events-none absolute -top-10 -right-10 w-28 h-28 rounded-full bg-gradient-to-br to-transparent blur-2xl opacity-70",
+          statGlow[color],
+        )}
+      />
+      <div className="relative flex items-start justify-between mb-4">
+        <div className={cn("p-3 rounded-xl transition-transform group-hover:scale-105", statColors[color])}>
           <Icon size={22} />
         </div>
         {trend && (
           <span
             className={cn(
-              "text-xs font-bold px-2 py-1 rounded-lg",
+              "inline-flex items-center gap-1 text-xs font-bold px-2 py-1 rounded-lg",
               trend.up ? "bg-emerald-50 text-emerald-600" : "bg-red-50 text-red-600",
             )}
           >
-            {trend.up ? "▲" : "▼"} {trend.value}
+            {trend.up ? <TrendingUp size={13} /> : <TrendingDown size={13} />}
+            {trend.value}
           </span>
         )}
       </div>
-      <p className="text-2xl font-bold text-dark-900">{value}</p>
-      <p className="text-sm font-medium text-gray-500 mt-1">{label}</p>
-      {sub && <p className="text-xs text-gray-400 mt-2">{sub}</p>}
+      <p className="relative text-2xl font-bold text-dark-900 tracking-tight">{value}</p>
+      <p className="relative text-sm font-medium text-gray-500 mt-1">{label}</p>
+      {sub && <p className="relative text-xs text-gray-400 mt-2">{sub}</p>}
     </Card>
+  );
+}
+
+/** Consistent responsive grid for KPI/stat cards. */
+export function StatGrid({ children, className }: { children: ReactNode; className?: string }) {
+  return (
+    <div className={cn("grid grid-cols-2 xl:grid-cols-4 gap-4 sm:gap-5 mb-6", className)}>
+      {children}
+    </div>
   );
 }
 
@@ -149,11 +230,12 @@ export function Button({
   disabled,
 }: ButtonProps) {
   const variants = {
-    primary: "bg-brand-600 text-white hover:bg-brand-700 shadow-sm",
-    dark: "bg-dark-900 text-white hover:bg-dark-800 shadow-sm",
-    outline: "bg-white border border-gray-200 text-gray-700 hover:bg-gray-50",
+    primary:
+      "bg-brand-600 text-white hover:bg-brand-700 shadow-sm shadow-brand-500/20 active:scale-[0.98]",
+    dark: "bg-dark-900 text-white hover:bg-dark-800 shadow-sm active:scale-[0.98]",
+    outline: "bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 hover:border-gray-300",
     ghost: "text-gray-600 hover:bg-gray-100",
-    danger: "bg-red-600 text-white hover:bg-red-700 shadow-sm",
+    danger: "bg-red-600 text-white hover:bg-red-700 shadow-sm active:scale-[0.98]",
     subtle: "bg-brand-50 text-brand-700 hover:bg-brand-100",
   };
   const sizes = { sm: "px-3 py-1.5 text-xs", md: "px-4 py-2.5 text-sm" };
@@ -163,7 +245,7 @@ export function Button({
       onClick={onClick}
       disabled={disabled}
       className={cn(
-        "inline-flex items-center justify-center gap-2 rounded-xl font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer",
+        "inline-flex items-center justify-center gap-2 rounded-xl font-semibold transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100 cursor-pointer",
         variants[variant],
         sizes[size],
         className,
@@ -233,23 +315,40 @@ export function Tabs({
 }) {
   return (
     <div className="flex gap-1 p-1 bg-gray-100 rounded-xl w-fit max-w-full overflow-x-auto">
-      {tabs.map((t) => (
-        <button
-          key={t.id}
-          onClick={() => onChange(t.id)}
-          className={cn(
-            "px-4 py-2 rounded-lg text-sm font-semibold transition-all whitespace-nowrap cursor-pointer",
-            active === t.id
-              ? "bg-white text-brand-600 shadow-sm"
-              : "text-gray-500 hover:text-gray-700",
-          )}
-        >
-          {t.label}
-          {t.count !== undefined && (
-            <span className="ml-2 text-xs text-gray-400">{t.count}</span>
-          )}
-        </button>
-      ))}
+      {tabs.map((t) => {
+        const isActive = active === t.id;
+        return (
+          <button
+            key={t.id}
+            onClick={() => onChange(t.id)}
+            className={cn(
+              "relative px-4 py-2 rounded-lg text-sm font-semibold transition-colors whitespace-nowrap cursor-pointer",
+              isActive ? "text-brand-600" : "text-gray-500 hover:text-gray-700",
+            )}
+          >
+            {isActive && (
+              <motion.span
+                layoutId="tab-pill"
+                className="absolute inset-0 bg-white rounded-lg shadow-sm"
+                transition={{ type: "spring", duration: 0.4, bounce: 0.18 }}
+              />
+            )}
+            <span className="relative">
+              {t.label}
+              {t.count !== undefined && (
+                <span
+                  className={cn(
+                    "ml-2 text-xs",
+                    isActive ? "text-brand-400" : "text-gray-400",
+                  )}
+                >
+                  {t.count}
+                </span>
+              )}
+            </span>
+          </button>
+        );
+      })}
     </div>
   );
 }
@@ -270,13 +369,21 @@ export function SearchInput({
 }) {
   return (
     <div className={cn("relative", className)}>
-      <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+      <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
       <input
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        className="w-full pl-9 pr-3 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-brand-500 outline-none transition-all"
+        className="w-full pl-9 pr-8 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-brand-500/30 focus:border-brand-400 outline-none transition-all"
       />
+      {value && (
+        <button
+          onClick={() => onChange("")}
+          className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-300 hover:text-gray-500 cursor-pointer"
+        >
+          <X size={15} />
+        </button>
+      )}
     </div>
   );
 }
@@ -297,7 +404,7 @@ export function Select({
       <select
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="appearance-none w-full pl-3 pr-9 py-2.5 bg-white border border-gray-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-brand-500 outline-none cursor-pointer"
+        className="appearance-none w-full pl-3 pr-9 py-2.5 bg-white border border-gray-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-brand-500/30 focus:border-brand-400 outline-none cursor-pointer transition-all"
       >
         {options.map((o) => (
           <option key={o.value} value={o.value}>
@@ -349,7 +456,7 @@ export function TextInput({
       value={value}
       onChange={(e) => onChange(e.target.value)}
       placeholder={placeholder}
-      className="w-full px-3 py-2.5 bg-gray-50/50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-brand-500 focus:bg-white outline-none transition-all"
+      className="w-full px-3 py-2.5 bg-gray-50/50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-brand-500/30 focus:border-brand-400 focus:bg-white outline-none transition-all"
     />
   );
 }
@@ -371,8 +478,24 @@ export function TextArea({
       onChange={(e) => onChange(e.target.value)}
       placeholder={placeholder}
       rows={rows}
-      className="w-full px-3 py-2.5 bg-gray-50/50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-brand-500 focus:bg-white outline-none transition-all resize-none"
+      className="w-full px-3 py-2.5 bg-gray-50/50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-brand-500/30 focus:border-brand-400 focus:bg-white outline-none transition-all resize-none"
     />
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* Filter bar — consistent toolbar for list pages                      */
+/* ------------------------------------------------------------------ */
+export function FilterBar({ children, className }: { children: ReactNode; className?: string }) {
+  return (
+    <div
+      className={cn(
+        "flex flex-col sm:flex-row gap-3 p-4 border-b border-gray-100",
+        className,
+      )}
+    >
+      {children}
+    </div>
   );
 }
 
@@ -410,6 +533,13 @@ export function Progress({
       )}
     </div>
   );
+}
+
+/* ------------------------------------------------------------------ */
+/* Skeleton — loading placeholder                                      */
+/* ------------------------------------------------------------------ */
+export function Skeleton({ className }: { className?: string }) {
+  return <div className={cn("animate-pulse rounded-lg bg-gray-200/70", className)} />;
 }
 
 /* ------------------------------------------------------------------ */
@@ -553,22 +683,30 @@ export function DataTable<T extends { id: string | number }>({
   data,
   onRowClick,
   empty = "Tidak ada data.",
+  stickyHeader = false,
 }: {
   columns: Column<T>[];
   data: T[];
   onRowClick?: (row: T) => void;
   empty?: string;
+  /** keep the header visible while the body scrolls */
+  stickyHeader?: boolean;
 }) {
   return (
     <div className="overflow-x-auto">
       <table className="w-full text-left">
         <thead>
-          <tr className="border-b border-gray-100 text-[11px] text-gray-400 font-bold uppercase tracking-wider">
+          <tr
+            className={cn(
+              "border-b border-gray-100 text-[11px] text-gray-400 font-bold uppercase tracking-wider bg-gray-50/40",
+              stickyHeader && "sticky top-0 z-10 backdrop-blur",
+            )}
+          >
             {columns.map((c) => (
               <th
                 key={c.key}
                 className={cn(
-                  "py-3 px-4",
+                  "py-3 px-4 first:rounded-l-lg last:rounded-r-lg",
                   c.align === "right" && "text-right",
                   c.align === "center" && "text-center",
                 )}
@@ -591,8 +729,10 @@ export function DataTable<T extends { id: string | number }>({
                 key={row.id}
                 onClick={() => onRowClick?.(row)}
                 className={cn(
-                  "hover:bg-gray-50/70 transition-colors",
-                  onRowClick && "cursor-pointer",
+                  "transition-colors",
+                  onRowClick
+                    ? "cursor-pointer hover:bg-brand-50/40"
+                    : "hover:bg-gray-50/70",
                 )}
               >
                 {columns.map((c) => (
@@ -736,14 +876,38 @@ export function ToastProvider({ children }: { children: ReactNode }) {
 export function SectionTitle({
   children,
   action,
+  subtitle,
 }: {
   children: ReactNode;
   action?: ReactNode;
+  subtitle?: string;
 }) {
   return (
-    <div className="flex items-center justify-between mb-4">
-      <h2 className="font-bold text-dark-900">{children}</h2>
+    <div className="flex items-start justify-between mb-4 gap-3">
+      <div>
+        <h2 className="font-bold text-dark-900">{children}</h2>
+        {subtitle && <p className="text-xs text-gray-400 mt-0.5">{subtitle}</p>}
+      </div>
       {action}
     </div>
   );
 }
+
+/* ------------------------------------------------------------------ */
+/* Page transition wrapper                                             */
+/* ------------------------------------------------------------------ */
+export function PageTransition({ children }: { children: ReactNode }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -8 }}
+      transition={{ duration: 0.25, ease: "easeOut" }}
+    >
+      {children}
+    </motion.div>
+  );
+}
+
+/* re-export for breadcrumb chevrons etc. */
+export { ChevronRight };
