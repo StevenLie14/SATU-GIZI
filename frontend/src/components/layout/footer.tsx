@@ -27,10 +27,10 @@ const Footer = () => {
           <div>
             <h4 className="text-white font-semibold mb-6">Platform Utama</h4>
             <ul className="space-y-3 text-sm">
-              <li><Link to="/map" className="hover:text-brand-400 transition-colors">Peta Sebaran Interaktif</Link></li>
-              <li><a href="#" className="hover:text-brand-400 transition-colors">Perizinan Vendor MBG</a></li>
-              <li><a href="#" className="hover:text-brand-400 transition-colors">Matching Demand-Supply</a></li>
-              <li><a href="#" className="hover:text-brand-400 transition-colors">B2B Matchmaking UMKM</a></li>
+              <li><Link to="/app/peta" className="hover:text-brand-400 transition-colors">Peta Sebaran Interaktif</Link></li>
+              <li><Link to="/app/manajemen-data/verifikasi-vendor" className="hover:text-brand-400 transition-colors">Perizinan Vendor MBG</Link></li>
+              <li><Link to="/app/rantai-pasok/analitik" className="hover:text-brand-400 transition-colors">Matching Demand-Supply</Link></li>
+              <li><Link to="/app/rantai-pasok/procurement" className="hover:text-brand-400 transition-colors">B2B Matchmaking UMKM</Link></li>
             </ul>
           </div>
 

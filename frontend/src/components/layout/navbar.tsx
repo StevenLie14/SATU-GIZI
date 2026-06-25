@@ -1,6 +1,6 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Map, Home, Menu, X, TrendingUp, Handshake, LayoutDashboard } from 'lucide-react';
+import { Home, Menu, X, LayoutDashboard } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import Logo from "@/assets/logo.jpg";
 const Navbar = () => {
@@ -30,9 +30,6 @@ const Navbar = () => {
 
   const navLinks = [
     { name: 'Home', path: '/', icon: Home },
-    { name: 'Peta Sebaran', path: '/map', icon: Map },
-    { name: 'Forecast', path: '/forecast', icon: TrendingUp },
-    { name: 'Matchmaking', path: '/matchmaking', icon: Handshake },
     { name: 'Dashboard', path: '/app/dashboard', icon: LayoutDashboard },
   ];
 

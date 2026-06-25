@@ -9,8 +9,6 @@ import MapDashboard from "@/features/map/map-dashboard";
 import LoginPage from "@/features/auth/login-page";
 import RegisterPage from "@/features/auth/register-page";
 import AuditPage from "@/features/audit/audit-page";
-import ForecastPage from "@/features/forecast/forecast-page";
-import MatchmakingPage from "@/features/matchmaking/matchmaking-page";
 import EntityDetailPage from "@/features/entity/entity-detail-page";
 
 // Dashboard
@@ -48,20 +46,23 @@ export function AppRoutes() {
       {/* Public / marketing site */}
       <Route element={<MarketingLayout />}>
         <Route path="/" element={<LandingPage />} />
-        <Route path="/map" element={<MapDashboard />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/audit" element={<AuditPage />} />
-        <Route path="/forecast" element={<ForecastPage />} />
-        <Route path="/matchmaking" element={<MatchmakingPage />} />
         <Route path="/detail/:id" element={<EntityDetailPage />} />
       </Route>
+
+      {/* Legacy public links — consolidated into the dashboard */}
+      <Route path="/map" element={<Navigate to="/app/peta" replace />} />
+      <Route path="/forecast" element={<Navigate to="/app/rantai-pasok/analitik" replace />} />
+      <Route path="/matchmaking" element={<Navigate to="/app/rantai-pasok/procurement" replace />} />
 
       {/* MBG Chain dashboard application */}
       <Route path="/app" element={<DashboardLayout />}>
         <Route index element={<Navigate to="/app/dashboard" replace />} />
         <Route path="dashboard" element={<DashboardHome />} />
         <Route path="ai-copilot" element={<AiCopilot />} />
+        <Route path="peta" element={<MapDashboard />} />
 
         <Route path="distribusi/monitoring" element={<MonitoringProses />} />
         <Route path="distribusi/driver-kader" element={<DriverKader />} />

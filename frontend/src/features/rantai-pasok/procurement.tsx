@@ -29,6 +29,7 @@ import {
   type Column,
 } from "@/components/ui";
 import { purchaseOrders, matchRecommendations, type PurchaseOrder, type MatchRec } from "@/mocks/mbg-data";
+import MatchmakingPanel from "@/features/rantai-pasok/matchmaking-panel";
 
 const statusColor: Record<PurchaseOrder["status"], "green" | "blue" | "amber" | "gray"> = {
   Diterima: "green",
@@ -110,14 +111,26 @@ export default function Procurement() {
       </div>
 
       <div className="mb-5">
-        <Tabs tabs={[{ id: "po", label: "Purchase Orders", count: orders.length }, { id: "match", label: "Supplier Matching" }]} active={tab} onChange={setTab} />
+        <Tabs
+          tabs={[
+            { id: "po", label: "Purchase Orders", count: orders.length },
+            { id: "match", label: "Supplier Matching" },
+            { id: "matchmaking", label: "Peta Matchmaking" },
+          ]}
+          active={tab}
+          onChange={setTab}
+        />
       </div>
 
-      {tab === "po" ? (
+      {tab === "matchmaking" && <MatchmakingPanel />}
+
+      {tab === "po" && (
         <Card padded={false}>
           <div className="p-2"><DataTable columns={columns} data={orders} /></div>
         </Card>
-      ) : (
+      )}
+
+      {tab === "match" && (
         <div>
           <Card className="mb-5">
             <div className="flex flex-col md:flex-row gap-4 items-end">

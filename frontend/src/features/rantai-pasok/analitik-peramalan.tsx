@@ -30,6 +30,7 @@ import {
 import { LineChart } from "@/components/charts";
 import { demandForecast, priceForecast, regionBalances, redistRecommendations } from "@/mocks/mbg-data";
 import { anchorRecord, getAuditTrail } from "@/lib/blockchain";
+import RouteOptimizerPanel from "@/features/rantai-pasok/route-optimizer-panel";
 
 export default function AnalitikPeramalan() {
   const { toast } = useToast();
@@ -53,6 +54,7 @@ export default function AnalitikPeramalan() {
             { id: "demand", label: "Demand Forecasting" },
             { id: "price", label: "Price Forecasting" },
             { id: "balancing", label: "Inter-Regional Balancing" },
+            { id: "route", label: "Optimasi Rute" },
           ]}
           active={tab}
           onChange={setTab}
@@ -73,8 +75,8 @@ export default function AnalitikPeramalan() {
             <LineChart
               labels={demandForecast.labels}
               series={[
-                { name: "Aktual", values: demandForecast.actual.map((v) => v || 0), color: "#16a34a" },
-                { name: "Prediksi", values: demandForecast.predicted, color: "#3b82f6" },
+                { name: "Aktual", values: demandForecast.actual.map((v) => v || 0), color: "#dc2626" },
+                { name: "Prediksi", values: demandForecast.predicted, color: "#94a3b8" },
               ]}
               height={260}
             />
@@ -240,6 +242,8 @@ export default function AnalitikPeramalan() {
           </div>
         </div>
       )}
+
+      {tab === "route" && <RouteOptimizerPanel />}
     </div>
   );
 }

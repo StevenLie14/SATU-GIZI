@@ -36,12 +36,12 @@ const LandingPage = () => {
               </motion.p>
               
               <motion.div variants={fadeIn} className="flex flex-col sm:flex-row gap-4">
-                <Link to="/map" className="inline-flex justify-center items-center gap-2 px-8 py-4 bg-brand-600 text-white font-semibold rounded-full hover:bg-brand-700 transition-all shadow-lg hover:shadow-brand-500/30 group">
+                <Link to="/app/peta" className="inline-flex justify-center items-center gap-2 px-8 py-4 bg-brand-600 text-white font-semibold rounded-full hover:bg-brand-700 transition-all shadow-lg hover:shadow-brand-500/30 group">
                   <Map className="w-5 h-5" />
                   Buka Peta Sebaran
                   <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                 </Link>
-                <Link to="/map" className="inline-flex justify-center items-center gap-2 px-8 py-4 bg-white text-dark-900 font-semibold rounded-full border border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-all">
+                <Link to="/app/peta" className="inline-flex justify-center items-center gap-2 px-8 py-4 bg-white text-dark-900 font-semibold rounded-full border border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-all">
                   Pelajari Dashboard
                 </Link>
               </motion.div>
@@ -163,7 +163,7 @@ const LandingPage = () => {
               </motion.div>
             </Link>
 
-            <Link to="/forecast">
+            <Link to="/app/rantai-pasok/analitik">
               <motion.div 
                 whileHover={{ y: -5 }}
                 className="bg-white rounded-3xl p-8 shadow-md border border-brand-100 relative overflow-hidden h-full"
@@ -193,7 +193,7 @@ const LandingPage = () => {
               </motion.div>
             </Link>
 
-            <Link to="/matchmaking">
+            <Link to="/app/rantai-pasok/procurement">
               <motion.div 
                 whileHover={{ y: -5 }}
                 className="bg-white rounded-3xl p-8 shadow-sm border border-gray-100 hover:shadow-xl hover:shadow-brand-500/5 transition-all h-full"
@@ -236,7 +236,7 @@ const LandingPage = () => {
                <p className="text-gray-400 max-w-2xl mx-auto mb-10 text-lg">
                  Masuk ke Peta Interaktif kami untuk melihat secara langsung infrastruktur, cakupan, dan kapasitas vendor di seluruh wilayah Indonesia.
                </p>
-               <Link to="/map" className="inline-flex justify-center items-center gap-2 px-8 py-4 bg-brand-500 text-white font-semibold rounded-full hover:bg-brand-400 transition-all shadow-[0_0_20px_rgba(34,197,94,0.3)] hover:shadow-[0_0_30px_rgba(34,197,94,0.5)]">
+               <Link to="/app/peta" className="inline-flex justify-center items-center gap-2 px-8 py-4 bg-brand-500 text-white font-semibold rounded-full hover:bg-brand-400 transition-all shadow-[0_0_20px_rgba(34,197,94,0.3)] hover:shadow-[0_0_30px_rgba(34,197,94,0.5)]">
                   Mulai Jelajah Peta
                   <Map className="w-5 h-5 ml-1" />
                </Link>

@@ -10,6 +10,7 @@ import {
   Settings,
   Sparkles,
   ShieldCheck,
+  Map,
   type LucideIcon,
 } from "lucide-react";
 import type { Role } from "@/context/role-context";
@@ -44,6 +45,12 @@ export const NAV: NavGroup[] = [
     icon: Sparkles,
     roles: ALL,
     items: [{ label: "Pusat Insight AI", path: "/app/ai-copilot", roles: ALL, badge: "AI" }],
+  },
+  {
+    label: "Peta Sebaran",
+    icon: Map,
+    roles: ALL,
+    items: [{ label: "Peta Sebaran", path: "/app/peta", roles: ALL }],
   },
   {
     label: "Distribusi & Dokumentasi",
