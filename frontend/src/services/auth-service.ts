@@ -19,6 +19,8 @@ export interface RegisterPayload {
   phone?: string;
   password: string;
   commodities?: string;
+  lat: number;
+  lng: number;
 }
 
 /** Infer a demo role from the email, so different logins land in different views. */
@@ -58,14 +60,49 @@ export async function login(payload: LoginPayload): Promise<AuthUser> {
       if (res.ok) {
         const data = await res.json();
         return { ...user, token: data.access_token ?? user.token };
+      } else {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.message || "Email atau kata sandi salah");
       }
-    } catch {
-      /* ignore — fall back to mock so the user is never blocked */
+    } catch (err: any) {
+      if (err instanceof Error && err.message !== "Failed to fetch" && !err.message.includes("fetch")) {
+        throw err;
+      }
+      /* ignore network errors and fall back to mock */
     }
   }
   return user;
 }
 
 export async function register(payload: RegisterPayload): Promise<AuthUser> {
-  return login({ email: payload.email || "mitra@vendor.id", password: payload.password });
+  const role = inferRole(payload.email || "mitra@vendor.id");
+  const user: AuthUser = {
+    id: "u-demo",
+    name: payload.businessName,
+    email: payload.email,
+    role,
+    token: mockToken(),
+  };
+
+  if (!env.offlineMode) {
+    try {
+      const res = await fetch(`${env.apiUrl}/auth/register`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      if (res.ok) {
+        return login({ email: payload.email, password: payload.password });
+      } else {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.message || "Registrasi gagal");
+      }
+    } catch (err: any) {
+      if (err instanceof Error && err.message !== "Failed to fetch" && !err.message.includes("fetch")) {
+        throw err;
+      }
+      /* ignore network errors and fall back to mock */
+    }
+  }
+  return user;
 }

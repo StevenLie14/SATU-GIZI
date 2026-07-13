@@ -94,6 +94,18 @@ export class VendorVerificationService {
       summary: `${dto.type} — ${vendor.nama}`,
       actor: 'Inspektur',
     });
+
+    const existing = await this.prisma.certificate.findFirst({
+      where: { vendorId: id, type: dto.type },
+    });
+
+    if (existing) {
+      return this.prisma.certificate.update({
+        where: { id: existing.id },
+        data: { ...dto, docHash: anchor.txHash },
+      });
+    }
+
     return this.prisma.certificate.create({
       data: { ...dto, vendorId: id, docHash: anchor.txHash },
     });

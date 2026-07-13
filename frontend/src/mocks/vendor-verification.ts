@@ -9,6 +9,7 @@ export interface VendorCert {
   nomor: string;
   validUntil: string;
   status: CertStatus;
+  docHash?: string;
 }
 
 export interface ComplianceItem {

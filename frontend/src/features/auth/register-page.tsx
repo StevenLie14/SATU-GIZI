@@ -56,6 +56,8 @@ const RegisterPage = () => {
         phone: formData.phone,
         password: formData.password,
         commodities: formData.commodities,
+        lat: formData.lat,
+        lng: formData.lng,
       });
       navigate('/app/dashboard');
     } catch (err: any) {

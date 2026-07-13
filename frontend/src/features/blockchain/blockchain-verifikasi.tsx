@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
   ShieldCheck,
@@ -29,13 +29,12 @@ import {
 import { env } from "@/config/env";
 import {
   connectWallet,
-  getAuditTrail,
-  verifyHash,
   getSupplierReputation,
   CONTRACT_ADDRESSES,
   type OnChainRecord,
   type WalletState,
 } from "@/lib/blockchain";
+import { fetchAuditTrail, verifyOnChain } from "@/services/blockchain-service";
 
 const CONTRACTS = [
   { key: "vendorCredentialRegistry", name: "VendorCredentialRegistry", desc: "NPWP, NIB & sertifikat vendor (BGN)", icon: FileCheck2 },
@@ -48,8 +47,12 @@ export default function BlockchainVerifikasi() {
   const { toast } = useToast();
   const [wallet, setWallet] = useState<WalletState | null>(null);
   const [connecting, setConnecting] = useState(false);
-  const trail = useMemo(() => getAuditTrail(), []);
+  const [trail, setTrail] = useState<OnChainRecord[]>([]);
   const reputation = useMemo(() => getSupplierReputation(), []);
+
+  useEffect(() => {
+    fetchAuditTrail().then(setTrail);
+  }, []);
   const [docInput, setDocInput] = useState("");
   const [docResult, setDocResult] = useState<{ verified: boolean; txHash: string; block: number } | null>(null);
 
@@ -63,13 +66,18 @@ export default function BlockchainVerifikasi() {
     toast(w.simulated ? "Wallet simulasi terhubung." : `Terhubung: ${shortHash(w.address ?? "")}`);
   };
 
-  const verify = () => {
+  const verify = async () => {
     if (!docInput.trim()) {
       toast("Masukkan ID dokumen / hash.", "error");
       return;
     }
-    setDocResult(verifyHash(docInput.trim()));
-    toast("Verifikasi selesai — dokumen ditemukan on-chain.");
+    try {
+      const res = await verifyOnChain(docInput.trim());
+      setDocResult(res);
+      toast("Verifikasi selesai — dokumen ditemukan on-chain.");
+    } catch {
+      toast("Gagal melakukan verifikasi dokumen.", "error");
+    }
   };
 
   const copy = (text: string) => {
@@ -105,7 +113,7 @@ export default function BlockchainVerifikasi() {
         <StatCard label="Total Transaksi" value={trail.length} icon={Link2} color="brand" sub={env.chainName} />
         <StatCard label="Smart Contract" value={CONTRACTS.length} icon={ScrollText} color="blue" />
         <StatCard label="Terkonfirmasi" value={trail.filter((t) => t.status === "confirmed").length} icon={CheckCircle2} color="green" />
-        <StatCard label="Block Terkini" value={`#${Math.max(...trail.map((t) => t.blockNumber)).toLocaleString("id-ID")}`} icon={Boxes} color="purple" />
+        <StatCard label="Block Terkini" value={trail.length > 0 ? `#${Math.max(...trail.map((t) => t.blockNumber)).toLocaleString("id-ID")}` : "-"} icon={Boxes} color="purple" />
       </div>
 
       {/* Smart contracts */}

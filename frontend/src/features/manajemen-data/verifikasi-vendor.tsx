@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
   BadgeCheck,
@@ -34,12 +34,16 @@ import {
   shortHash,
 } from "@/components/ui";
 import { useRole } from "@/context/role-context";
-import { verifyHash, anchorRecord } from "@/lib/blockchain";
+import { verifyHash } from "@/lib/blockchain";
 import {
-  vendorVerifications as seed,
   type VendorVerification,
   type VerifStatus,
 } from "@/mocks/vendor-verification";
+import {
+  getVendors,
+  approveVendor,
+  addCertificate,
+} from "@/services/vendor-verification-service";
 
 const statusColor: Record<VerifStatus, "green" | "amber" | "blue" | "red"> = {
   Terverifikasi: "green",
@@ -54,7 +58,15 @@ export default function VerifikasiVendor() {
   const { role } = useRole();
   const { toast } = useToast();
   const isBGN = role === "pemerintah";
-  const [list, setList] = useState<VendorVerification[]>(seed);
+  const [list, setList] = useState<VendorVerification[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    getVendors().then((data) => {
+      setList(data);
+      setLoading(false);
+    });
+  }, []);
   const [query, setQuery] = useState("");
   const [tab, setTab] = useState("all");
   const [view, setView] = useState<VendorVerification | null>(null);
@@ -87,22 +99,40 @@ export default function VerifikasiVendor() {
     setDrawerTab("usaha");
   };
 
-  const approveBGN = (v: VendorVerification) => {
-    const rec = anchorRecord("VendorCredentialRegistry", "setBGNApproval", `BGN approve ${v.nama}`);
-    const updated: VendorVerification = {
-      ...v,
-      bgnApproved: true,
-      status: "Terverifikasi",
-      compliance: v.compliance.map((c) => (c.label.includes("BGN") ? { ...c, done: true } : c)),
-    };
-    setList((prev) => prev.map((x) => (x.id === v.id ? updated : x)));
-    setView(updated);
-    toast(`${v.nama} disetujui BGN & dicatat on-chain ${rec.txHash.slice(0, 10)}…`);
+  const approveBGN = async (v: VendorVerification) => {
+    try {
+      const updated = await approveVendor(v.id);
+      setList((prev) => prev.map((x) => (x.id === v.id ? updated : x)));
+      setView(updated);
+      toast(`${v.nama} disetujui BGN & dicatat on-chain.`);
+    } catch (err: any) {
+      toast(err.message || "Gagal menyetujui vendor", "error");
+    }
   };
 
-  const anchorCert = (v: VendorVerification, certType: string) => {
-    const rec = anchorRecord("VendorCredentialRegistry", "addCertificate", `${certType} — ${v.nama}`);
-    toast(`Sertifikat ${certType} disimpan ke blockchain ${rec.txHash.slice(0, 10)}…`);
+  const anchorCert = async (v: VendorVerification, certType: string) => {
+    const cert = v.certificates.find((c) => c.type === certType);
+    if (!cert) return;
+    try {
+      const res = await addCertificate(v.id, {
+        type: cert.type,
+        nomor: cert.nomor,
+        validUntil: cert.validUntil,
+        status: cert.status,
+      });
+
+      const updatedCerts = v.certificates.map((c) =>
+        c.type === certType ? { ...c, docHash: res.docHash } : c
+      );
+      const updatedVendor = { ...v, certificates: updatedCerts };
+
+      setList((prev) => prev.map((x) => (x.id === v.id ? updatedVendor : x)));
+      setView(updatedVendor);
+
+      toast(`Sertifikat ${certType} disimpan ke blockchain: ${res.docHash?.slice(0, 10)}…`);
+    } catch (err: any) {
+      toast(err.message || "Gagal menyimpan sertifikat", "error");
+    }
   };
 
   return (
@@ -153,40 +183,46 @@ export default function VerifikasiVendor() {
         <SearchInput value={query} onChange={setQuery} placeholder="Cari vendor / NPWP / NIB" className="md:w-72" />
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
-        {filtered.map((v, i) => (
-          <motion.div key={v.id} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04 }}>
-            <Card className="h-full hover:shadow-md transition-shadow">
-              <div className="flex items-start justify-between mb-3">
-                <div className="flex items-center gap-3 min-w-0">
-                  <span className="p-2.5 bg-brand-50 text-brand-600 rounded-2xl shrink-0"><Building2 size={20} /></span>
-                  <div className="min-w-0">
-                    <h3 className="font-bold text-dark-900 truncate flex items-center gap-1.5">{v.nama}{v.bgnApproved && <BadgeCheck size={14} className="text-blue-500 shrink-0" />}</h3>
-                    <p className="text-xs text-gray-400 truncate">{v.jenisUsaha}</p>
+      {loading ? (
+        <div className="flex justify-center items-center py-12 text-sm text-gray-500">Memuat data vendor...</div>
+      ) : filtered.length === 0 ? (
+        <div className="flex justify-center items-center py-12 text-sm text-gray-500">Tidak ada vendor ditemukan.</div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+          {filtered.map((v, i) => (
+            <motion.div key={v.id} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04 }}>
+              <Card className="h-full hover:shadow-md transition-shadow">
+                <div className="flex items-start justify-between mb-3">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <span className="p-2.5 bg-brand-50 text-brand-600 rounded-2xl shrink-0"><Building2 size={20} /></span>
+                    <div className="min-w-0">
+                      <h3 className="font-bold text-dark-900 truncate flex items-center gap-1.5">{v.nama}{v.bgnApproved && <BadgeCheck size={14} className="text-blue-500 shrink-0" />}</h3>
+                      <p className="text-xs text-gray-400 truncate">{v.jenisUsaha}</p>
+                    </div>
                   </div>
+                  {v.isUMKM && <Badge color="amber">UMKM</Badge>}
                 </div>
-                {v.isUMKM && <Badge color="amber">UMKM</Badge>}
-              </div>
 
-              <div className="space-y-1.5 mb-3 text-xs">
-                <div className="flex items-center gap-2 text-gray-500"><CreditCard size={13} className="text-gray-400" /> NPWP {v.npwp}</div>
-                <div className="flex items-center gap-2 text-gray-500"><FileText size={13} className="text-gray-400" /> NIB {v.nib}</div>
-                <div className="flex items-center gap-2 text-gray-500"><MapPin size={13} className="text-gray-400" /> {v.lokasi}</div>
-              </div>
+                <div className="space-y-1.5 mb-3 text-xs">
+                  <div className="flex items-center gap-2 text-gray-500"><CreditCard size={13} className="text-gray-400" /> NPWP {v.npwp}</div>
+                  <div className="flex items-center gap-2 text-gray-500"><FileText size={13} className="text-gray-400" /> NIB {v.nib}</div>
+                  <div className="flex items-center gap-2 text-gray-500"><MapPin size={13} className="text-gray-400" /> {v.lokasi}</div>
+                </div>
 
-              <div className="mb-3">
-                <div className="flex justify-between text-xs mb-1.5"><span className="text-gray-500">Kepatuhan Dokumen</span><span className="font-semibold text-dark-900">{compliancePct(v)}%</span></div>
-                <Progress value={compliancePct(v)} color={compliancePct(v) >= 80 ? "green" : "amber"} />
-              </div>
+                <div className="mb-3">
+                  <div className="flex justify-between text-xs mb-1.5"><span className="text-gray-500">Kepatuhan Dokumen</span><span className="font-semibold text-dark-900">{compliancePct(v)}%</span></div>
+                  <Progress value={compliancePct(v)} color={compliancePct(v) >= 80 ? "green" : "amber"} />
+                </div>
 
-              <div className="flex items-center justify-between">
-                <Badge color={statusColor[v.status]} dot>{v.status}</Badge>
-                <button onClick={() => openView(v)} className="text-xs font-semibold text-brand-600 hover:underline inline-flex items-center gap-1 cursor-pointer"><Eye size={13} /> Detail</button>
-              </div>
-            </Card>
-          </motion.div>
-        ))}
-      </div>
+                <div className="flex items-center justify-between">
+                  <Badge color={statusColor[v.status]} dot>{v.status}</Badge>
+                  <button onClick={() => openView(v)} className="text-xs font-semibold text-brand-600 hover:underline inline-flex items-center gap-1 cursor-pointer"><Eye size={13} /> Detail</button>
+                </div>
+              </Card>
+            </motion.div>
+          ))}
+        </div>
+      )}
 
       {/* Verification drawer */}
       <Drawer
@@ -246,9 +282,15 @@ export default function VerifikasiVendor() {
                       <p className="text-xs text-gray-500">No. {c.nomor}</p>
                       <p className="text-xs text-gray-400">Berlaku s.d {c.validUntil}</p>
                       {c.status === "Valid" && (
-                        <button onClick={() => anchorCert(view, c.type)} className="mt-2 text-xs font-semibold text-blue-600 hover:underline inline-flex items-center gap-1 cursor-pointer">
-                          <Link2 size={12} /> Simpan ke Blockchain
-                        </button>
+                        c.docHash ? (
+                          <div className="mt-2 text-xs font-medium text-emerald-600 flex items-center gap-1.5">
+                            <CheckCircle2 size={13} className="text-emerald-500" /> Tersimpan di Blockchain
+                          </div>
+                        ) : (
+                          <button onClick={() => anchorCert(view, c.type)} className="mt-2 text-xs font-semibold text-blue-600 hover:underline inline-flex items-center gap-1 cursor-pointer">
+                            <Link2 size={12} /> Simpan ke Blockchain
+                          </button>
+                        )
                       )}
                     </div>
                   ))}

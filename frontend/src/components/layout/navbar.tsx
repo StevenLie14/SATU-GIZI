@@ -3,20 +3,17 @@ import { motion } from 'framer-motion';
 import { Home, Menu, X, LayoutDashboard } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import Logo from "@/assets/logo.jpg";
+import { useAuth } from "@/context/auth-context";
+
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-
-  useEffect(() => {
-    setIsLoggedIn(!!localStorage.getItem('token'));
-  }, [location]);
+  const { isAuthenticated, logout } = useAuth();
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
-    setIsLoggedIn(false);
+    logout();
     navigate('/');
   };
 
@@ -80,7 +77,7 @@ const Navbar = () => {
               );
             })}
             
-            {isLoggedIn ? (
+            {isAuthenticated ? (
               <button 
                 onClick={handleLogout}
                 className="ml-4 px-6 py-2.5 bg-red-600 text-white text-sm font-medium rounded-full hover:bg-red-700 transition-all shadow-md hover:shadow-lg cursor-pointer"
@@ -130,7 +127,7 @@ const Navbar = () => {
             </Link>
           ))}
           <div className="pt-4 px-4">
-             {isLoggedIn ? (
+             {isAuthenticated ? (
                <button 
                  onClick={() => {
                    handleLogout();

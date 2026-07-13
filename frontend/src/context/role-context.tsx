@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, type ReactNode } from "react";
 import { Landmark, ChefHat, Building2, School, type LucideIcon } from "lucide-react";
+import { getCookie, setCookie } from "@/lib/session";
 
 /* ------------------------------------------------------------------ */
 /* Stakeholder roles                                                   */
@@ -51,10 +52,10 @@ export function useRole() {
 
 export function RoleProvider({ children }: { children: ReactNode }) {
   const [role, setRoleState] = useState<Role>(
-    () => (localStorage.getItem("mbg_role") as Role) || "pemerintah",
+    () => (getCookie("mbg_role") as Role) || "pemerintah"
   );
   const setRole = (r: Role) => {
-    localStorage.setItem("mbg_role", r);
+    setCookie("mbg_role", r, 7);
     setRoleState(r);
   };
   return <RoleCtx.Provider value={{ role, setRole }}>{children}</RoleCtx.Provider>;
