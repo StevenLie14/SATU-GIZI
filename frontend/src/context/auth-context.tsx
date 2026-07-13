@@ -1,6 +1,7 @@
-import { createContext, useContext, useState, type ReactNode } from "react";
+import { createContext, useContext, useState, useEffect, type ReactNode } from "react";
 import { login as loginService, register as registerService, type AuthUser, type LoginPayload, type RegisterPayload } from "@/services/auth-service";
 import { useRole } from "@/context/role-context";
+import { getCookie, setCookie, eraseCookie } from "@/lib/session";
 
 interface AuthState {
   user: AuthUser | null;
@@ -22,24 +23,29 @@ export function useAuth() {
   return useContext(AuthCtx);
 }
 
-const STORAGE_KEY = "mbg_auth_user";
-
 export function AuthProvider({ children }: { children: ReactNode }) {
   const { setRole } = useRole();
   const [user, setUser] = useState<AuthUser | null>(() => {
     try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      return raw ? (JSON.parse(raw) as AuthUser) : null;
+      const raw = getCookie("mbg_auth_user");
+      return raw ? (JSON.parse(decodeURIComponent(raw)) as AuthUser) : null;
     } catch {
       return null;
     }
   });
 
+  // Ensure role context stays synchronized when initializing user from cookie
+  useEffect(() => {
+    if (user) {
+      setRole(user.role);
+    }
+  }, [user]);
+
   const persist = (u: AuthUser) => {
     setUser(u);
     setRole(u.role);
-    localStorage.setItem("token", u.token);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(u));
+    setCookie("token", u.token, 7);
+    setCookie("mbg_auth_user", encodeURIComponent(JSON.stringify(u)), 7);
   };
 
   const login = async (payload: LoginPayload) => {
@@ -54,8 +60,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
   const logout = () => {
     setUser(null);
-    localStorage.removeItem("token");
-    localStorage.removeItem(STORAGE_KEY);
+    eraseCookie("token");
+    eraseCookie("mbg_auth_user");
+    eraseCookie("mbg_role");
   };
 
   return (

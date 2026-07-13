@@ -4,6 +4,9 @@ services:
       context: ./frontend
       args:
         VITE_API_URL: ${VITE_API_URL}
+        VITE_OFFLINE_MODE: ${VITE_OFFLINE_MODE}
+        VITE_CHAIN_NAME: ${VITE_CHAIN_NAME}
+        VITE_CHAIN_ID: ${VITE_CHAIN_ID}
     ports:
       - "3001:80"
     depends_on:
