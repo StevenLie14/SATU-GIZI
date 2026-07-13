@@ -52,4 +52,12 @@ export const CONTRACT_ADDRESSES: Record<number, Record<string, string>> = {
     procurementRFQ: "0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0",
     vendorCredentialRegistry: "0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9",
   },
+  // Polygon Amoy testnet — see blockchain/deployments/amoy.json.
+  // procurementRFQ & vendorCredentialRegistry menyusul (menunggu jatah faucet).
+  80002: {
+    permitRegistry: "0xB6eD0Af69Cd1039e10b19504349DC1F83CB2D256",
+    redistributionLedger: "0xF064c1abb40a51b45d9A3cEaF40578db2Da9F68a",
+    procurementRFQ: "",
+    vendorCredentialRegistry: "",
+  },
 };
