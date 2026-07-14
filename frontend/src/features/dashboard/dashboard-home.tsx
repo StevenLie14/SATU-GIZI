@@ -30,14 +30,29 @@ import {
 } from "@/components/ui";
 import { BarChart, DonutChart, LineChart } from "@/components/charts";
 import { useRole, ROLES } from "@/context/role-context";
+import { useState, useEffect } from "react";
 import {
-  distBatches,
-  stockItems,
-  reviews,
-  demandForecast,
-  regionBalances,
-  beneficiaries,
+  distBatches as seedBatches,
+  stockItems as seedStock,
+  reviews as seedReviews,
+  demandForecast as seedDemand,
+  regionBalances as seedBalances,
+  beneficiaries as seedBeneficiaries,
+  type Beneficiary,
+  type DistBatch,
+  type RegionBalance,
+  type Review,
+  type StockItem,
 } from "@/mocks/mbg-data";
+import { getDistBatches } from "@/services/distribution-service";
+import { getStockItems } from "@/services/stock-service";
+import { getReviews } from "@/services/reviews-service";
+import { getBeneficiaries } from "@/services/beneficiaries-service";
+import {
+  getDemandForecast,
+  getRegionBalances,
+  type DemandForecast,
+} from "@/services/analytics-service";
 
 /* Brand-aligned chart palette (primary = red). */
 const CHART = {
@@ -61,6 +76,22 @@ const SHORTCUTS = [
 export default function DashboardHome() {
   const { role } = useRole();
   const R = ROLES[role];
+
+  const [distBatches, setBatches] = useState<DistBatch[]>(seedBatches);
+  const [stockItems, setStock] = useState<StockItem[]>(seedStock);
+  const [reviews, setReviews] = useState<Review[]>(seedReviews);
+  const [beneficiaries, setBeneficiaries] = useState<Beneficiary[]>(seedBeneficiaries);
+  const [demandForecast, setDemand] = useState<DemandForecast>(seedDemand);
+  const [regionBalances, setBalances] = useState<RegionBalance[]>(seedBalances);
+
+  useEffect(() => {
+    getDistBatches().then((rows) => rows.length && setBatches(rows));
+    getStockItems().then((rows) => rows.length && setStock(rows));
+    getReviews().then((rows) => rows.length && setReviews(rows));
+    getBeneficiaries().then((rows) => rows.length && setBeneficiaries(rows));
+    getDemandForecast().then(setDemand);
+    getRegionBalances().then((rows) => rows.length && setBalances(rows));
+  }, []);
 
   const totalPorsi = distBatches.reduce((a, b) => a + b.porsi, 0);
   const selesai = distBatches.filter((b) => b.stage === "selesai").length;

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
   Building2,
@@ -35,6 +35,7 @@ import {
 } from "@/components/ui";
 import { useRole } from "@/context/role-context";
 import { kitchens as seed, type Kitchen } from "@/mocks/mbg-data";
+import { getKitchens } from "@/services/kitchens-service";
 import { verifyHash, anchorRecord } from "@/lib/blockchain";
 
 const izinColor: Record<Kitchen["izinStatus"], "green" | "amber" | "red"> = {
@@ -48,6 +49,9 @@ export default function DapurSPPG() {
   const { toast } = useToast();
   const isGov = role === "pemerintah";
   const [list, setList] = useState<Kitchen[]>(seed);
+  useEffect(() => {
+    getKitchens().then((rows) => rows.length && setList(rows));
+  }, []);
   const [adding, setAdding] = useState(false);
   const [view, setView] = useState<Kitchen | null>(null);
   const [tab, setTab] = useState("profil");
@@ -57,7 +61,9 @@ export default function DapurSPPG() {
   const berlaku = list.filter((k) => k.izinStatus === "Berlaku").length;
 
   const checklistProgress = (k: Kitchen) =>
-    Math.round((k.checklist.filter((c) => c.done).length / k.checklist.length) * 100);
+    k.checklist.length
+      ? Math.round((k.checklist.filter((c) => c.done).length / k.checklist.length) * 100)
+      : 0;
 
   const toggleChecklist = (kitchenId: string, idx: number) => {
     setList((prev) =>

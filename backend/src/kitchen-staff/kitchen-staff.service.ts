@@ -26,7 +26,7 @@ export class KitchenStaffService {
 
   async findOne(id: string) {
     const staff = await this.prisma.kitchenStaff.findUnique({ where: { id }, include: { kitchen: true } });
-    if (!staff) throw new NotFoundException('Kitchen staff not found');
+    if (!staff) throw new NotFoundException('Staf dapur tidak ditemukan');
     return staff;
   }
 

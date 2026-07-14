@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Carrot, Plus, Calculator, Trash2, Pencil, Package } from "lucide-react";
 import {
   PageHeader,
@@ -19,12 +19,16 @@ import {
 } from "@/components/ui";
 import { DonutChart } from "@/components/charts";
 import { ingredients, type Ingredient } from "@/mocks/mbg-data";
+import { createIngredient, getIngredients } from "@/services/ingredients-service";
 
 const palette = ["#16a34a", "#3b82f6", "#f59e0b", "#a855f7", "#ec4899", "#06b6d4"];
 
 export default function BahanBaku() {
   const { toast } = useToast();
   const [list, setList] = useState<Ingredient[]>(ingredients);
+  useEffect(() => {
+    getIngredients().then((rows) => rows.length && setList(rows));
+  }, []);
   const [query, setQuery] = useState("");
   const [kategori, setKategori] = useState("all");
   const [porsi, setPorsi] = useState(2750);
@@ -55,7 +59,12 @@ export default function BahanBaku() {
       setList((prev) => prev.map((x) => (x.id === modal.data!.id ? { ...x, nama: form.nama, kategori: form.kategori || x.kategori, perPorsi: +form.perPorsi, satuan: form.satuan, hargaSatuan: +form.hargaSatuan, supplier: form.supplier || x.supplier } : x)));
       toast("Bahan baku diperbarui.");
     } else {
-      setList((prev) => [...prev, { id: `i${Date.now()}`, nama: form.nama, kategori: form.kategori || "Lainnya", perPorsi: +form.perPorsi, satuan: form.satuan, hargaSatuan: +form.hargaSatuan, supplier: form.supplier || "—" }]);
+      const item: Ingredient = { id: `i${Date.now()}`, nama: form.nama, kategori: form.kategori || "Lainnya", perPorsi: +form.perPorsi, satuan: form.satuan, hargaSatuan: +form.hargaSatuan, supplier: form.supplier || "—" };
+      const { id: localId, ...payload } = item;
+      createIngredient(payload).then((saved) => {
+        if (saved) setList((prev) => prev.map((x) => (x.id === localId ? { ...x, id: saved.id } : x)));
+      });
+      setList((prev) => [...prev, item]);
       toast("Bahan baku ditambahkan.");
     }
     setModal(null);

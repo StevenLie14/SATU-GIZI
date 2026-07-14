@@ -36,7 +36,7 @@ export class ReviewsService {
 
   async findOne(id: string) {
     const review = await this.prisma.review.findUnique({ where: { id } });
-    if (!review) throw new NotFoundException('Review not found');
+    if (!review) throw new NotFoundException('Ulasan tidak ditemukan');
     return review;
   }
 

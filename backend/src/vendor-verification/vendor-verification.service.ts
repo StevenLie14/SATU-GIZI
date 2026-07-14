@@ -66,7 +66,7 @@ export class VendorVerificationService {
       where: { id },
       include: { certificates: true, compliance: true },
     });
-    if (!vendor) throw new NotFoundException('Vendor verification not found');
+    if (!vendor) throw new NotFoundException('Verifikasi vendor tidak ditemukan');
     return vendor;
   }
 
@@ -140,7 +140,7 @@ export class VendorVerificationService {
 
   private async ensure(id: string) {
     const vendor = await this.prisma.vendorVerification.findUnique({ where: { id } });
-    if (!vendor) throw new NotFoundException('Vendor verification not found');
+    if (!vendor) throw new NotFoundException('Verifikasi vendor tidak ditemukan');
     return vendor;
   }
 }

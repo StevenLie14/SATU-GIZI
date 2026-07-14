@@ -19,7 +19,7 @@ export class AuthService {
     });
 
     if (existingUser) {
-      throw new ConflictException('Email already exists');
+      throw new ConflictException('Email sudah terdaftar');
     }
 
     const hashedPassword = await bcrypt.hash(dto.password, 10);
@@ -48,13 +48,13 @@ export class AuthService {
     });
 
     if (!user) {
-      throw new UnauthorizedException('Invalid credentials');
+      throw new UnauthorizedException('Email atau password salah');
     }
 
     const isPasswordValid = await bcrypt.compare(dto.password, user.password);
 
     if (!isPasswordValid) {
-      throw new UnauthorizedException('Invalid credentials');
+      throw new UnauthorizedException('Email atau password salah');
     }
 
     return this.generateToken(user.id, user.email, user.role);

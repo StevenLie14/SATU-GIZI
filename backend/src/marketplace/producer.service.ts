@@ -34,7 +34,7 @@ export class ProducerService {
 
   async findOne(id: string) {
     const item = await this.prisma.localProducer.findUnique({ where: { id } });
-    if (!item) throw new NotFoundException('Local producer not found');
+    if (!item) throw new NotFoundException('Produsen lokal tidak ditemukan');
     return item;
   }
 

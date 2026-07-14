@@ -48,7 +48,7 @@ export class KitchensService {
       where: { id },
       include: { checklist: true, inspections: { orderBy: { createdAt: 'desc' } }, staff: true },
     });
-    if (!kitchen) throw new NotFoundException('Kitchen not found');
+    if (!kitchen) throw new NotFoundException('Dapur tidak ditemukan');
     return kitchen;
   }
 
@@ -122,7 +122,7 @@ export class KitchensService {
 
   private async ensure(id: string) {
     const kitchen = await this.prisma.kitchen.findUnique({ where: { id } });
-    if (!kitchen) throw new NotFoundException('Kitchen not found');
+    if (!kitchen) throw new NotFoundException('Dapur tidak ditemukan');
     return kitchen;
   }
 }

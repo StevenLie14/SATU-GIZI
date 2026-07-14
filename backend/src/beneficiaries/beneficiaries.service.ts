@@ -27,7 +27,7 @@ export class BeneficiariesService {
 
   async findOne(id: string) {
     const school = await this.prisma.school.findUnique({ where: { id }, include: { kitchen: true } });
-    if (!school) throw new NotFoundException('Beneficiary not found');
+    if (!school) throw new NotFoundException('Penerima manfaat tidak ditemukan');
     return school;
   }
 

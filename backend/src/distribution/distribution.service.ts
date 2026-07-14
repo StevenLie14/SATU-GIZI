@@ -55,7 +55,7 @@ export class DistributionService {
       where: { id },
       include: { kitchen: true, school: true },
     });
-    if (!batch) throw new NotFoundException('Batch not found');
+    if (!batch) throw new NotFoundException('Batch tidak ditemukan');
     return batch;
   }
 
@@ -78,7 +78,7 @@ export class DistributionService {
   async advanceStage(id: string) {
     const batch = await this.ensure(id);
     const idx = STAGE_ORDER.indexOf(batch.stage);
-    if (idx >= STAGE_ORDER.length - 1) throw new BadRequestException('Batch already completed');
+    if (idx >= STAGE_ORDER.length - 1) throw new BadRequestException('Batch sudah selesai');
     const stage = STAGE_ORDER[idx + 1];
     return this.prisma.distributionBatch.update({
       where: { id },
@@ -102,7 +102,7 @@ export class DistributionService {
 
   private async ensure(id: string) {
     const batch = await this.prisma.distributionBatch.findUnique({ where: { id } });
-    if (!batch) throw new NotFoundException('Batch not found');
+    if (!batch) throw new NotFoundException('Batch tidak ditemukan');
     return batch;
   }
 }

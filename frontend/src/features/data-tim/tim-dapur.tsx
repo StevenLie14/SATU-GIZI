@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ChefHat, Plus, BadgeCheck, Pencil, Users } from "lucide-react";
 import {
   PageHeader,
@@ -17,10 +17,14 @@ import {
   type Column,
 } from "@/components/ui";
 import { kitchenStaff, type KitchenStaff } from "@/mocks/mbg-data";
+import { createKitchenStaff, getKitchenStaff } from "@/services/kitchen-staff-service";
 
 export default function TimDapur() {
   const { toast } = useToast();
   const [list, setList] = useState<KitchenStaff[]>(kitchenStaff);
+  useEffect(() => {
+    getKitchenStaff().then((rows) => rows.length && setList(rows));
+  }, []);
   const [query, setQuery] = useState("");
   const [dapur, setDapur] = useState("all");
   const [adding, setAdding] = useState(false);
@@ -39,7 +43,11 @@ export default function TimDapur() {
       toast("Nama wajib diisi.", "error");
       return;
     }
-    setList((prev) => [{ id: `ks${Date.now()}`, nama: form.nama, peran: form.peran, dapur: form.dapur, sertifikasi: form.sertifikasi || "—", status: "Aktif" }, ...prev]);
+    const localId = `ks${Date.now()}`;
+    createKitchenStaff({ nama: form.nama, peran: form.peran, sertifikasi: form.sertifikasi || undefined, status: "Aktif" }).then((saved) => {
+      if (saved) setList((prev) => prev.map((x) => (x.id === localId ? { ...x, id: saved.id } : x)));
+    });
+    setList((prev) => [{ id: localId, nama: form.nama, peran: form.peran, dapur: form.dapur, sertifikasi: form.sertifikasi || "—", status: "Aktif" }, ...prev]);
     setAdding(false);
     setForm({ nama: "", peran: "Juru Masak", dapur: "SPPG Dapur Pusat Senen", sertifikasi: "" });
     toast("Anggota tim dapur ditambahkan.");

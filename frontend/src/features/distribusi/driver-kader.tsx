@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Users, Plus, Phone, Star, MapPin, Truck } from "lucide-react";
 import {
   PageHeader,
@@ -17,6 +17,7 @@ import {
   type Column,
 } from "@/components/ui";
 import { personnel, type Personnel } from "@/mocks/mbg-data";
+import { createPersonnel, getPersonnel } from "@/services/personnel-service";
 
 const statusColor: Record<Personnel["status"], "green" | "amber" | "gray"> = {
   Bertugas: "green",
@@ -27,6 +28,9 @@ const statusColor: Record<Personnel["status"], "green" | "amber" | "gray"> = {
 export default function DriverKader() {
   const { toast } = useToast();
   const [list, setList] = useState<Personnel[]>(personnel);
+  useEffect(() => {
+    getPersonnel().then((rows) => rows.length && setList(rows));
+  }, []);
   const [query, setQuery] = useState("");
   const [peran, setPeran] = useState("all");
   const [adding, setAdding] = useState(false);
@@ -43,19 +47,21 @@ export default function DriverKader() {
       toast("Nama dan area wajib diisi.", "error");
       return;
     }
-    setList((prev) => [
-      {
-        id: `p${Date.now()}`,
-        nama: form.nama,
-        peran: form.peran as Personnel["peran"],
-        area: form.area,
-        kontak: form.kontak || "-",
-        status: "Standby",
-        pengiriman: 0,
-        rating: 5,
-      },
-      ...prev,
-    ]);
+    const person: Personnel = {
+      id: `p${Date.now()}`,
+      nama: form.nama,
+      peran: form.peran as Personnel["peran"],
+      area: form.area,
+      kontak: form.kontak || "-",
+      status: "Standby",
+      pengiriman: 0,
+      rating: 5,
+    };
+    const { id: localId, ...payload } = person;
+    createPersonnel(payload).then((saved) => {
+      if (saved) setList((prev) => prev.map((x) => (x.id === localId ? { ...x, id: saved.id } : x)));
+    });
+    setList((prev) => [person, ...prev]);
     setAdding(false);
     setForm({ nama: "", peran: "Driver", area: "", kontak: "" });
     toast("Personel baru ditambahkan.");

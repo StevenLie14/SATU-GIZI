@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
   Store,
@@ -32,7 +32,14 @@ import {
 import { useRole } from "@/context/role-context";
 import { scoreSupplierMatch } from "@/services/ai-service";
 import { anchorRecord } from "@/lib/blockchain";
-import { rfqs as seedRfqs, catalogItems, localProducers, type Rfq, type Quote, type CatalogItem } from "@/mocks/rfq-data";
+import { rfqs as seedRfqs, catalogItems, localProducers, type Rfq, type Quote, type CatalogItem, type LocalProducer } from "@/mocks/rfq-data";
+import {
+  awardRfq,
+  createRfq as createRfqApi,
+  getCatalogItems,
+  getLocalProducers,
+  getRfqs,
+} from "@/services/rfq-service";
 
 const statusColor: Record<Rfq["status"], "blue" | "amber" | "green" | "gray"> = {
   Terbuka: "blue",
@@ -56,15 +63,24 @@ export default function Rfq() {
   const { toast } = useToast();
   const isBuyer = role === "pemerintah" || role === "sppg";
   const [list, setList] = useState<Rfq[]>(seedRfqs);
+  const [catalog, setCatalog] = useState<CatalogItem[]>(catalogItems);
+  const [producers, setProducers] = useState<LocalProducer[]>(localProducers);
   const [tab, setTab] = useState("rfq");
   const [open, setOpen] = useState<Rfq | null>(null);
   const [creating, setCreating] = useState(false);
   const [form, setForm] = useState({ komoditas: catalogItems[0].nama, qty: "", deadline: "" });
 
+  useEffect(() => {
+    getRfqs().then(setList);
+    getCatalogItems().then(setCatalog);
+    getLocalProducers().then(setProducers);
+  }, []);
+
   const totalQuotes = list.reduce((a, r) => a + r.quotes.length, 0);
 
   const award = (rfq: Rfq, q: Quote) => {
     const rec = anchorRecord("ProcurementRFQ", "awardQuote", `${rfq.kode} → ${q.supplier}`);
+    awardRfq(rfq.id, q.supplier);
     setList((prev) => prev.map((r) => (r.id === rfq.id ? { ...r, status: "Diputuskan", awardedTo: q.supplier } : r)));
     setOpen((o) => (o && o.id === rfq.id ? { ...o, status: "Diputuskan", awardedTo: q.supplier } : o));
     toast(`Dimenangkan ${q.supplier}. Tercatat on-chain ${rec.txHash.slice(0, 10)}…`);
@@ -75,16 +91,27 @@ export default function Rfq() {
       toast("Jumlah wajib diisi.", "error");
       return;
     }
-    const cat = catalogItems.find((c) => c.nama === form.komoditas)!;
+    const cat = catalog.find((c) => c.nama === form.komoditas) ?? catalogItems[0];
     const rec = anchorRecord("ProcurementRFQ", "createRFQ", `${form.komoditas} ${form.qty} ${cat.satuan}`);
+    const buyer = role === "sppg" ? "SPPG Dapur Pusat Senen" : "Pemerintah Pusat";
+    const localId = `rfq${Date.now()}`;
+    createRfqApi({
+      komoditas: form.komoditas,
+      qty: +form.qty,
+      satuan: cat.satuan,
+      buyer,
+      deadline: form.deadline || undefined,
+    }).then((saved) => {
+      if (saved) setList((prev) => prev.map((r) => (r.id === localId ? { ...r, id: saved.id, kode: saved.kode } : r)));
+    });
     setList((prev) => [
       {
-        id: `rfq${Date.now()}`,
+        id: localId,
         kode: `RFQ-${new Date().toISOString().slice(5, 10).replace("-", "")}-${String(prev.length + 13).padStart(3, "0")}`,
         komoditas: form.komoditas,
         qty: +form.qty,
         satuan: cat.satuan,
-        buyer: role === "sppg" ? "SPPG Dapur Pusat Senen" : "Pemerintah Pusat",
+        buyer,
         deadline: form.deadline || "—",
         status: "Terbuka",
         quotes: [],
@@ -117,7 +144,7 @@ export default function Rfq() {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-5 mb-6">
         <StatCard label="RFQ Aktif" value={list.filter((r) => r.status !== "Diputuskan" && r.status !== "Ditutup").length} icon={Store} color="brand" />
         <StatCard label="Total Penawaran" value={totalQuotes} icon={Package} color="blue" />
-        <StatCard label="Item Katalog" value={catalogItems.length} icon={Package} color="amber" />
+        <StatCard label="Item Katalog" value={catalog.length} icon={Package} color="amber" />
         <StatCard label="Sudah Diputuskan" value={list.filter((r) => r.status === "Diputuskan").length} icon={Trophy} color="green" />
       </div>
 
@@ -125,8 +152,8 @@ export default function Rfq() {
         <Tabs
           tabs={[
             { id: "rfq", label: "RFQ & Penawaran", count: list.length },
-            { id: "katalog", label: "Katalog Bahan Baku", count: catalogItems.length },
-            { id: "umkm", label: "Produsen Lokal & UMKM", count: localProducers.length },
+            { id: "katalog", label: "Katalog Bahan Baku", count: catalog.length },
+            { id: "umkm", label: "Produsen Lokal & UMKM", count: producers.length },
           ]}
           active={tab}
           onChange={setTab}
@@ -176,20 +203,20 @@ export default function Rfq() {
 
       {tab === "katalog" && (
         <Card padded={false}>
-          <div className="p-2"><DataTable columns={catalogColumns} data={catalogItems} /></div>
+          <div className="p-2"><DataTable columns={catalogColumns} data={catalog} /></div>
         </Card>
       )}
 
       {tab === "umkm" && (
         <div>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-5 mb-6">
-            <StatCard label="Produsen Lokal" value={localProducers.length} icon={Store} color="brand" />
-            <StatCard label="Mitra Aktif" value={localProducers.filter((p) => p.status === "Mitra Aktif").length} icon={Trophy} color="green" />
-            <StatCard label="UMKM Diberdayakan" value={localProducers.filter((p) => p.isUMKM).length} icon={Sparkles} color="amber" />
-            <StatCard label="Lapangan Kerja" value={localProducers.reduce((a, p) => a + p.tenagaKerja, 0).toLocaleString("id-ID")} icon={Package} color="purple" sub="tenaga kerja terdukung" />
+            <StatCard label="Produsen Lokal" value={producers.length} icon={Store} color="brand" />
+            <StatCard label="Mitra Aktif" value={producers.filter((p) => p.status === "Mitra Aktif").length} icon={Trophy} color="green" />
+            <StatCard label="UMKM Diberdayakan" value={producers.filter((p) => p.isUMKM).length} icon={Sparkles} color="amber" />
+            <StatCard label="Lapangan Kerja" value={producers.reduce((a, p) => a + p.tenagaKerja, 0).toLocaleString("id-ID")} icon={Package} color="purple" sub="tenaga kerja terdukung" />
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
-            {localProducers.map((p, i) => (
+            {producers.map((p, i) => (
               <motion.div key={p.id} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04 }}>
                 <Card className="h-full">
                   <div className="flex items-start justify-between mb-2">
@@ -278,7 +305,7 @@ export default function Rfq() {
       {/* Create RFQ */}
       <Modal open={creating} onClose={() => setCreating(false)} title="Buat RFQ Baru" subtitle="Permintaan penawaran akan dicatat on-chain" footer={<><Button variant="outline" onClick={() => setCreating(false)}>Batal</Button><Button onClick={createRfq}>Terbitkan RFQ</Button></>}>
         <div className="space-y-4">
-          <Field label="Komoditas"><Select value={form.komoditas} onChange={(v) => setForm({ ...form, komoditas: v })} options={catalogItems.map((c) => ({ value: c.nama, label: c.nama }))} /></Field>
+          <Field label="Komoditas"><Select value={form.komoditas} onChange={(v) => setForm({ ...form, komoditas: v })} options={catalog.map((c) => ({ value: c.nama, label: c.nama }))} /></Field>
           <div className="grid grid-cols-2 gap-4">
             <Field label="Jumlah" required><TextInput type="number" value={form.qty} onChange={(v) => setForm({ ...form, qty: v })} placeholder="0" /></Field>
             <Field label="Deadline"><TextInput value={form.deadline} onChange={(v) => setForm({ ...form, deadline: v })} placeholder="cth. 30 Jun 2026" /></Field>

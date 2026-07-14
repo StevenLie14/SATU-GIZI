@@ -23,7 +23,7 @@ export class SuppliersService {
 
   async findOne(id: string) {
     const supplier = await this.prisma.supplier.findUnique({ where: { id } });
-    if (!supplier) throw new NotFoundException('Supplier not found');
+    if (!supplier) throw new NotFoundException('Pemasok tidak ditemukan');
     return supplier;
   }
 

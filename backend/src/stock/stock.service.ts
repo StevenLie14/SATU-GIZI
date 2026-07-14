@@ -24,7 +24,7 @@ export class StockService {
 
   async findOne(id: string) {
     const item = await this.prisma.stockItem.findUnique({ where: { id } });
-    if (!item) throw new NotFoundException('Stock item not found');
+    if (!item) throw new NotFoundException('Item stok tidak ditemukan');
     return item;
   }
 
@@ -41,7 +41,7 @@ export class StockService {
   async adjust(id: string, dto: AdjustStockDto) {
     const item = await this.findOne(id);
     const jumlah = item.jumlah + dto.delta;
-    if (jumlah < 0) throw new BadRequestException('Insufficient stock for this adjustment');
+    if (jumlah < 0) throw new BadRequestException('Stok tidak mencukupi untuk penyesuaian ini');
     const status: StockStatus =
       jumlah <= 0 ? StockStatus.KRITIS : jumlah < item.jumlah * 0.25 ? StockStatus.MENIPIS : StockStatus.AMAN;
     return this.prisma.stockItem.update({ where: { id }, data: { jumlah, status } });

@@ -39,7 +39,7 @@ export class ProcurementService {
 
   async findOne(id: string) {
     const po = await this.prisma.purchaseOrder.findUnique({ where: { id } });
-    if (!po) throw new NotFoundException('Purchase order not found');
+    if (!po) throw new NotFoundException('Purchase order tidak ditemukan');
     return po;
   }
 

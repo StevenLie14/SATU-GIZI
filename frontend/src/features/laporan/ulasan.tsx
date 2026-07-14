@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Star, MessageSquarePlus, Smile, Soup, Sparkles, ThumbsUp } from "lucide-react";
 import {
@@ -18,6 +18,7 @@ import {
 } from "@/components/ui";
 import { useRole } from "@/context/role-context";
 import { reviews as seed, type Review } from "@/mocks/mbg-data";
+import { createReview, getReviews } from "@/services/reviews-service";
 
 function Stars({ n, size = 14 }: { n: number; size?: number }) {
   return (
@@ -33,6 +34,9 @@ export default function Ulasan() {
   const { role } = useRole();
   const { toast } = useToast();
   const [list, setList] = useState<Review[]>(seed);
+  useEffect(() => {
+    getReviews().then((rows) => rows.length && setList(rows));
+  }, []);
   const [tab, setTab] = useState("all");
   const [adding, setAdding] = useState(false);
   const [form, setForm] = useState({ sekolah: "", penilai: "", rating: "5", komentar: "" });
@@ -53,21 +57,23 @@ export default function Ulasan() {
       return;
     }
     const rating = +form.rating;
-    setList((prev) => [
-      {
-        id: `r${Date.now()}`,
-        sekolah: form.sekolah,
-        penilai: form.penilai || "Anonim",
-        rating,
-        rasa: rating,
-        porsi: rating,
-        kebersihan: rating,
-        komentar: form.komentar,
-        tanggal: new Date().toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" }),
-        tag: rating >= 4 ? "Positif" : rating === 3 ? "Netral" : "Keluhan",
-      },
-      ...prev,
-    ]);
+    const review: Review = {
+      id: `r${Date.now()}`,
+      sekolah: form.sekolah,
+      penilai: form.penilai || "Anonim",
+      rating,
+      rasa: rating,
+      porsi: rating,
+      kebersihan: rating,
+      komentar: form.komentar,
+      tanggal: new Date().toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" }),
+      tag: rating >= 4 ? "Positif" : rating === 3 ? "Netral" : "Keluhan",
+    };
+    const { id: localId, ...payload } = review;
+    createReview(payload).then((saved) => {
+      if (saved) setList((prev) => prev.map((x) => (x.id === localId ? { ...x, id: saved.id } : x)));
+    });
+    setList((prev) => [review, ...prev]);
     setAdding(false);
     setForm({ sekolah: "", penilai: "", rating: "5", komentar: "" });
     toast("Ulasan terkirim. Terima kasih atas masukannya!");

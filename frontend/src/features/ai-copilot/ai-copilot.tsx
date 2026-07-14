@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import {
@@ -16,7 +16,8 @@ import { PageHeader, Card, Badge, Button, SectionTitle, cn } from "@/components/
 import { LineChart } from "@/components/charts";
 import { useRole, ROLES } from "@/context/role-context";
 import { generateInsights, summarize, forecastNext, type AiInsight, type AiSeverity } from "@/services/ai-service";
-import { demandForecast } from "@/mocks/mbg-data";
+import { demandForecast as seedDemand } from "@/mocks/mbg-data";
+import { getDemandForecast, type DemandForecast } from "@/services/analytics-service";
 
 const sevStyle: Record<AiSeverity, { color: "red" | "amber" | "blue" | "green"; icon: React.ComponentType<{ size?: number }> }> = {
   critical: { color: "red", icon: AlertTriangle },
@@ -38,11 +39,16 @@ export default function AiCopilot() {
   const insights = useMemo(() => generateInsights(role), [role]);
   const summary = useMemo(() => summarize(insights), [insights]);
 
+  const [demandForecast, setDemand] = useState<DemandForecast>(seedDemand);
+  useEffect(() => {
+    getDemandForecast().then(setDemand);
+  }, []);
+
   const forecast = useMemo(() => {
     const actual = demandForecast.actual.filter((v) => v > 0);
     const next = forecastNext(actual, 4);
     return { actual, next };
-  }, []);
+  }, [demandForecast]);
 
   const [messages, setMessages] = useState<{ role: "user" | "ai"; text: string }[]>([
     { role: "ai", text: `Halo! Saya MBG Copilot. ${summary}` },

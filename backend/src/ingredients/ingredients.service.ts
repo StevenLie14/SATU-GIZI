@@ -22,7 +22,7 @@ export class IngredientsService {
 
   async findOne(id: string) {
     const item = await this.prisma.ingredient.findUnique({ where: { id } });
-    if (!item) throw new NotFoundException('Ingredient not found');
+    if (!item) throw new NotFoundException('Bahan tidak ditemukan');
     return item;
   }
 

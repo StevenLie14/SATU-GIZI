@@ -17,7 +17,7 @@ export class RequirementsService {
 
   async findOne(id: string) {
     const item = await this.prisma.requirementPlan.findUnique({ where: { id } });
-    if (!item) throw new NotFoundException('Requirement plan not found');
+    if (!item) throw new NotFoundException('Rencana kebutuhan tidak ditemukan');
     return item;
   }
 

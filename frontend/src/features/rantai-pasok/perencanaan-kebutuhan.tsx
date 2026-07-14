@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ClipboardList, ShoppingCart, AlertTriangle, CheckCircle2, Calculator } from "lucide-react";
 import {
   PageHeader,
@@ -16,15 +16,20 @@ import {
 } from "@/components/ui";
 import { useNavigate } from "react-router-dom";
 import { requirementPlans, type RequirementPlan } from "@/mocks/mbg-data";
+import { getRequirementPlans } from "@/services/requirements-service";
 
 export default function PerencanaanKebutuhan() {
   const { toast } = useToast();
   const navigate = useNavigate();
   const [horizon, setHorizon] = useState("minggu");
+  const [plans, setPlans] = useState<RequirementPlan[]>(requirementPlans);
+  useEffect(() => {
+    getRequirementPlans().then(setPlans);
+  }, []);
   const factor = horizon === "minggu" ? 1 : horizon === "2minggu" ? 2 : 4;
 
   const need = (r: RequirementPlan) => Math.max(0, r.kebutuhanMingguan * factor - r.stokSaatIni);
-  const belowReorder = requirementPlans.filter((r) => r.stokSaatIni <= r.reorderPoint);
+  const belowReorder = plans.filter((r) => r.stokSaatIni <= r.reorderPoint);
 
   const columns: Column<RequirementPlan>[] = [
     { key: "komoditas", header: "Komoditas", render: (r) => <span className="font-semibold text-dark-900">{r.komoditas}</span> },
@@ -57,9 +62,9 @@ export default function PerencanaanKebutuhan() {
       />
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-5 mb-6">
-        <StatCard label="Komoditas Direncanakan" value={requirementPlans.length} icon={ClipboardList} color="brand" />
+        <StatCard label="Komoditas Direncanakan" value={plans.length} icon={ClipboardList} color="brand" />
         <StatCard label="Di Bawah Reorder Point" value={belowReorder.length} icon={AlertTriangle} color="red" sub="Perlu pengadaan" />
-        <StatCard label="Stok Aman" value={requirementPlans.length - belowReorder.length} icon={CheckCircle2} color="green" />
+        <StatCard label="Stok Aman" value={plans.length - belowReorder.length} icon={CheckCircle2} color="green" />
         <StatCard label="Horizon Perencanaan" value={horizon === "minggu" ? "1 Minggu" : horizon === "2minggu" ? "2 Minggu" : "1 Bulan"} icon={Calculator} color="blue" />
       </div>
 
@@ -80,7 +85,7 @@ export default function PerencanaanKebutuhan() {
         <div className="p-4 border-b border-gray-100">
           <SectionTitle>Rencana Kebutuhan Bahan Baku</SectionTitle>
         </div>
-        <div className="p-2"><DataTable columns={columns} data={requirementPlans} /></div>
+        <div className="p-2"><DataTable columns={columns} data={plans} /></div>
       </Card>
     </div>
   );

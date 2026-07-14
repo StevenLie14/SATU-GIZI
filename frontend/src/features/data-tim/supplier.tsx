@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Truck, Plus, Star, MapPin, Clock, TrendingDown, ShieldCheck, Eye } from "lucide-react";
 import {
   PageHeader,
@@ -20,6 +20,7 @@ import {
   type Column,
 } from "@/components/ui";
 import { suppliers, type Supplier as SupplierType } from "@/mocks/mbg-data";
+import { createSupplier, getSuppliers } from "@/services/suppliers-service";
 
 const statusColor: Record<SupplierType["status"], "green" | "amber" | "red"> = {
   Terverifikasi: "green",
@@ -32,6 +33,9 @@ export default function Supplier() {
   const [list, setList] = useState<SupplierType[]>(suppliers);
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState("all");
+  useEffect(() => {
+    getSuppliers().then((rows) => rows.length && setList(rows));
+  }, []);
   const [adding, setAdding] = useState(false);
   const [view, setView] = useState<SupplierType | null>(null);
   const [form, setForm] = useState({ nama: "", komoditas: "", lokasi: "" });
@@ -51,7 +55,12 @@ export default function Supplier() {
       toast("Nama supplier wajib diisi.", "error");
       return;
     }
-    setList((prev) => [{ id: `sp${Date.now()}`, nama: form.nama, komoditas: form.komoditas ? form.komoditas.split(",").map((c) => c.trim()) : [], lokasi: form.lokasi || "—", hargaIndex: 100, leadTime: "1 hari", rating: 5, status: "Pending" }, ...prev]);
+    const localId = `sp${Date.now()}`;
+    const komoditas = form.komoditas ? form.komoditas.split(",").map((c) => c.trim()) : [];
+    createSupplier({ nama: form.nama, komoditas, lokasi: form.lokasi || "—", hargaIndex: 100, leadTime: "1 hari" }).then((saved) => {
+      if (saved) setList((prev) => prev.map((x) => (x.id === localId ? { ...x, id: saved.id } : x)));
+    });
+    setList((prev) => [{ id: localId, nama: form.nama, komoditas, lokasi: form.lokasi || "—", hargaIndex: 100, leadTime: "1 hari", rating: 5, status: "Pending" }, ...prev]);
     setAdding(false);
     setForm({ nama: "", komoditas: "", lokasi: "" });
     toast("Supplier baru ditambahkan (menunggu verifikasi).");

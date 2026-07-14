@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
   UtensilsCrossed,
@@ -30,6 +30,7 @@ import {
 } from "@/components/ui";
 import { useRole } from "@/context/role-context";
 import { menuPlans, type MenuPlan } from "@/mocks/mbg-data";
+import { createMenuPlan, getMenuPlans, setMenuPlanStatus } from "@/services/menu-service";
 import {
   ageLevels,
   analyzeMenu,
@@ -52,6 +53,9 @@ export default function RencanaMenu() {
   const { toast } = useToast();
   const isGov = role === "pemerintah";
   const [plans, setPlans] = useState<MenuPlan[]>(menuPlans);
+  useEffect(() => {
+    getMenuPlans().then((p) => p.length && setPlans(p));
+  }, []);
   const [adding, setAdding] = useState(false);
   const [week] = useState("Minggu 4 Juni 2026");
   const [levelId, setLevelId] = useState<string>("sd13");
@@ -69,26 +73,29 @@ export default function RencanaMenu() {
       toast("Menu utama dan lauk wajib diisi.", "error");
       return;
     }
-    setPlans((prev) => [
-      ...prev,
-      {
-        id: `m${Date.now()}`,
-        hari: form.hari,
-        tanggal: form.tanggal || "—",
-        menuUtama: form.menuUtama,
-        lauk: form.lauk,
-        sayur: form.sayur || "—",
-        buah: form.buah || "—",
-        kalori: +form.kalori || 650,
-        status: "Draft",
-      },
-    ]);
+    const plan: MenuPlan = {
+      id: `m${Date.now()}`,
+      hari: form.hari,
+      tanggal: form.tanggal || "—",
+      menuUtama: form.menuUtama,
+      lauk: form.lauk,
+      sayur: form.sayur || "—",
+      buah: form.buah || "—",
+      kalori: +form.kalori || 650,
+      status: "Draft",
+    };
+    const { id: localId, ...payload } = plan;
+    createMenuPlan(payload).then((saved) => {
+      if (saved) setPlans((prev) => prev.map((x) => (x.id === localId ? { ...x, id: saved.id } : x)));
+    });
+    setPlans((prev) => [...prev, plan]);
     setAdding(false);
     setForm({ hari: "Senin", tanggal: "", menuUtama: "", lauk: "", sayur: "", buah: "", kalori: "" });
     toast("Menu ditambahkan ke rencana mingguan.");
   };
 
   const approve = (p: MenuPlan) => {
+    setMenuPlanStatus(p.id, "Disetujui");
     setPlans((prev) => prev.map((x) => (x.id === p.id ? { ...x, status: "Disetujui" } : x)));
     toast(`Menu hari ${p.hari} disetujui.`);
   };

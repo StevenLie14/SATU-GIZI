@@ -20,7 +20,7 @@ export class NutritionService {
 
   async findOne(id: string) {
     const t = await this.prisma.nutritionTarget.findUnique({ where: { id } });
-    if (!t) throw new NotFoundException('Nutrition target not found');
+    if (!t) throw new NotFoundException('Target gizi tidak ditemukan');
     return t;
   }
 

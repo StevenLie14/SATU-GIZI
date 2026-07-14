@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Store, Plus, ShieldCheck, FileCheck2, Star, Eye, TrendingUp, Clock } from "lucide-react";
 import {
   PageHeader,
@@ -21,6 +21,7 @@ import {
 } from "@/components/ui";
 import { useRole } from "@/context/role-context";
 import { suppliers, type Supplier } from "@/mocks/mbg-data";
+import { getSuppliers } from "@/services/suppliers-service";
 
 /* Vendor master uses the supplier dataset with onboarding/document framing */
 interface VendorRow extends Supplier {
@@ -28,16 +29,19 @@ interface VendorRow extends Supplier {
   dokumen: { label: string; done: boolean }[];
 }
 
-const seedVendors: VendorRow[] = suppliers.map((s, i) => ({
-  ...s,
-  onboarding: s.status === "Terverifikasi" ? 100 : 60 - i * 5,
-  dokumen: [
-    { label: "Akta / NIB Perusahaan", done: s.status === "Terverifikasi" },
-    { label: "NPWP", done: s.status === "Terverifikasi" },
-    { label: "Sertifikat Halal / Mutu", done: s.status === "Terverifikasi" || i % 2 === 0 },
-    { label: "Kontrak Kerjasama", done: s.status === "Terverifikasi" },
-  ],
-}));
+const toVendorRows = (rows: Supplier[]): VendorRow[] =>
+  rows.map((s, i) => ({
+    ...s,
+    onboarding: s.status === "Terverifikasi" ? 100 : 60 - i * 5,
+    dokumen: [
+      { label: "Akta / NIB Perusahaan", done: s.status === "Terverifikasi" },
+      { label: "NPWP", done: s.status === "Terverifikasi" },
+      { label: "Sertifikat Halal / Mutu", done: s.status === "Terverifikasi" || i % 2 === 0 },
+      { label: "Kontrak Kerjasama", done: s.status === "Terverifikasi" },
+    ],
+  }));
+
+const seedVendors: VendorRow[] = toVendorRows(suppliers);
 
 const statusColor: Record<Supplier["status"], "green" | "amber" | "red"> = {
   Terverifikasi: "green",
@@ -50,6 +54,9 @@ export default function Vendor() {
   const { toast } = useToast();
   const isGov = role === "pemerintah" || role === "sppg";
   const [list, setList] = useState<VendorRow[]>(seedVendors);
+  useEffect(() => {
+    getSuppliers().then((rows) => rows.length && setList(toVendorRows(rows)));
+  }, []);
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState("all");
   const [adding, setAdding] = useState(false);

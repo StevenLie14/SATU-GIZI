@@ -23,7 +23,7 @@ export class ProposalsService {
 
   async findOne(id: string) {
     const item = await this.prisma.budgetProposal.findUnique({ where: { id } });
-    if (!item) throw new NotFoundException('Proposal not found');
+    if (!item) throw new NotFoundException('Proposal tidak ditemukan');
     return item;
   }
 

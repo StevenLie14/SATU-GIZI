@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { School, Plus, Users, MapPin, Pencil, GraduationCap } from "lucide-react";
 import {
   PageHeader,
@@ -18,10 +18,14 @@ import {
 } from "@/components/ui";
 import { BarChart } from "@/components/charts";
 import { beneficiaries, type Beneficiary } from "@/mocks/mbg-data";
+import { createBeneficiary, getBeneficiaries } from "@/services/beneficiaries-service";
 
 export default function PenerimaManfaat() {
   const { toast } = useToast();
   const [list, setList] = useState<Beneficiary[]>(beneficiaries);
+  useEffect(() => {
+    getBeneficiaries().then((rows) => rows.length && setList(rows));
+  }, []);
   const [query, setQuery] = useState("");
   const [jenjang, setJenjang] = useState("all");
   const [adding, setAdding] = useState(false);
@@ -47,7 +51,20 @@ export default function PenerimaManfaat() {
       toast("Nama sekolah dan jumlah siswa wajib diisi.", "error");
       return;
     }
-    setList((prev) => [{ id: `be${Date.now()}`, sekolah: form.sekolah, jenjang: form.jenjang, alamat: form.alamat || "—", siswa: +form.siswa, dapur: form.dapur, status: "Pending" }, ...prev]);
+    const localId = `be${Date.now()}`;
+    // Koordinat default Jakarta — form ini tidak meminta lat/lng.
+    createBeneficiary({
+      name: form.sekolah,
+      address: form.alamat || "—",
+      jenjang: form.jenjang,
+      students: +form.siswa,
+      latitude: -6.2,
+      longitude: 106.816666,
+      capacity: +form.siswa,
+    }).then((saved) => {
+      if (saved) setList((prev) => prev.map((x) => (x.id === localId ? { ...x, id: saved.id } : x)));
+    });
+    setList((prev) => [{ id: localId, sekolah: form.sekolah, jenjang: form.jenjang, alamat: form.alamat || "—", siswa: +form.siswa, dapur: form.dapur, status: "Pending" }, ...prev]);
     setAdding(false);
     setForm({ sekolah: "", jenjang: "SD", alamat: "", siswa: "", dapur: "SPPG Dapur Pusat Senen" });
     toast("Sekolah penerima manfaat ditambahkan.");

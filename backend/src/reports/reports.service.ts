@@ -23,7 +23,7 @@ export class ReportsService {
 
   async findOne(id: string) {
     const report = await this.prisma.opsReport.findUnique({ where: { id } });
-    if (!report) throw new NotFoundException('Report not found');
+    if (!report) throw new NotFoundException('Laporan tidak ditemukan');
     return report;
   }
 

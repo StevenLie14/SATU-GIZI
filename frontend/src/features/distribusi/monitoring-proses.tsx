@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
   Truck,
@@ -27,6 +27,11 @@ import {
 } from "@/components/ui";
 import { useRole } from "@/context/role-context";
 import { distBatches, type DistBatch, type DistStage } from "@/mocks/mbg-data";
+import {
+  advanceBatchStage,
+  confirmBatchReceipt,
+  getDistBatches,
+} from "@/services/distribution-service";
 
 const STAGES: { id: DistStage; label: string; icon: React.ComponentType<{ size?: number }> }[] = [
   { id: "produksi", label: "Produksi", icon: ChefHat },
@@ -59,9 +64,13 @@ export default function MonitoringProses() {
   const [query, setQuery] = useState("");
   const [selected, setSelected] = useState<DistBatch | null>(null);
 
+  useEffect(() => {
+    getDistBatches().then((rows) => rows.length && setBatches(rows));
+  }, []);
+
   const dapurOptions = useMemo(
-    () => ["all", ...Array.from(new Set(distBatches.map((b) => b.dapur)))],
-    [],
+    () => ["all", ...Array.from(new Set(batches.map((b) => b.dapur)))],
+    [batches],
   );
 
   const filtered = batches.filter((b) => {
@@ -78,6 +87,7 @@ export default function MonitoringProses() {
     if (idx >= STAGES.length - 1) return;
     const next = STAGES[idx + 1].id;
     const updated = { ...b, stage: next, progress: Math.round(((idx + 2) / STAGES.length) * 100) };
+    advanceBatchStage(b.id);
     setBatches((prev) => prev.map((x) => (x.id === b.id ? updated : x)));
     setSelected(updated);
     toast(`${b.kode} → ${STAGES[idx + 1].label}`);
@@ -85,6 +95,7 @@ export default function MonitoringProses() {
 
   const confirmReceipt = (b: DistBatch) => {
     const updated = { ...b, stage: "selesai" as DistStage, progress: 100 };
+    confirmBatchReceipt(b.id);
     setBatches((prev) => prev.map((x) => (x.id === b.id ? updated : x)));
     setSelected(updated);
     toast("Penerimaan dikonfirmasi sekolah. Terima kasih!");

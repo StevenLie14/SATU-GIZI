@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Link, NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import {
@@ -18,7 +18,8 @@ import { ROLES, useRole, type Role } from "@/context/role-context";
 import { navForRole, findNavByPath } from "@/constants/navigation";
 import { cn } from "@/lib/cn";
 import { PageTransition } from "@/components/ui";
-import { notifications as seedNotifications } from "@/mocks/mbg-data";
+import { notifications as seedNotifications, type AppNotification } from "@/mocks/mbg-data";
+import { getNotifications } from "@/services/notifications-service";
 
 /* ------------------------------------------------------------------ */
 /* Sidebar                                                             */
@@ -265,7 +266,11 @@ function RoleSwitcher() {
 function NotificationBell() {
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
-  const unread = seedNotifications.filter((n) => !n.dibaca).length;
+  const [notifications, setNotifications] = useState<AppNotification[]>(seedNotifications);
+  useEffect(() => {
+    getNotifications().then((rows) => rows.length && setNotifications(rows));
+  }, []);
+  const unread = notifications.filter((n) => !n.dibaca).length;
   return (
     <div className="relative">
       <button
@@ -294,7 +299,7 @@ function NotificationBell() {
                 <span className="text-[11px] text-brand-600 font-semibold">{unread} baru</span>
               </div>
               <div className="max-h-80 overflow-y-auto">
-                {seedNotifications.slice(0, 4).map((n) => (
+                {notifications.slice(0, 4).map((n) => (
                   <div
                     key={n.id}
                     className={cn(

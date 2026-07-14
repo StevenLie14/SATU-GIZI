@@ -23,7 +23,7 @@ export class PersonnelService {
 
   async findOne(id: string) {
     const person = await this.prisma.personnel.findUnique({ where: { id } });
-    if (!person) throw new NotFoundException('Personnel not found');
+    if (!person) throw new NotFoundException('Personel tidak ditemukan');
     return person;
   }
 

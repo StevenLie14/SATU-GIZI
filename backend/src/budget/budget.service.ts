@@ -36,7 +36,7 @@ export class BudgetService {
 
   async findOne(id: string) {
     const item = await this.prisma.budgetItem.findUnique({ where: { id } });
-    if (!item) throw new NotFoundException('Budget item not found');
+    if (!item) throw new NotFoundException('Item anggaran tidak ditemukan');
     return item;
   }
 

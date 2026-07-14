@@ -26,7 +26,7 @@ export class NotificationsService {
 
   async markRead(id: string) {
     const notif = await this.prisma.notification.findUnique({ where: { id } });
-    if (!notif) throw new NotFoundException('Notification not found');
+    if (!notif) throw new NotFoundException('Notifikasi tidak ditemukan');
     return this.prisma.notification.update({ where: { id }, data: { dibaca: true } });
   }
 
@@ -40,7 +40,7 @@ export class NotificationsService {
 
   async remove(id: string) {
     const notif = await this.prisma.notification.findUnique({ where: { id } });
-    if (!notif) throw new NotFoundException('Notification not found');
+    if (!notif) throw new NotFoundException('Notifikasi tidak ditemukan');
     return this.prisma.notification.delete({ where: { id } });
   }
 }

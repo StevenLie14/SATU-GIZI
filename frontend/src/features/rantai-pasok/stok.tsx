@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Boxes, Plus, Minus, AlertTriangle, Warehouse, PackageCheck, CalendarClock } from "lucide-react";
 import {
   PageHeader,
@@ -19,6 +19,7 @@ import {
 } from "@/components/ui";
 import { DonutChart } from "@/components/charts";
 import { stockItems, type StockItem } from "@/mocks/mbg-data";
+import { adjustStock, getStockItems } from "@/services/stock-service";
 
 const statusColor: Record<StockItem["status"], "green" | "amber" | "red"> = {
   Aman: "green",
@@ -37,6 +38,9 @@ function computeStatus(jumlah: number): StockItem["status"] {
 export default function Stok() {
   const { toast } = useToast();
   const [list, setList] = useState<StockItem[]>(stockItems);
+  useEffect(() => {
+    getStockItems().then(setList);
+  }, []);
   const [query, setQuery] = useState("");
   const [gudang, setGudang] = useState("all");
   const [adjust, setAdjust] = useState<{ item: StockItem; dir: "in" | "out" } | null>(null);
@@ -58,6 +62,7 @@ export default function Stok() {
   const applyAdjust = () => {
     if (!adjust || !amount) return;
     const delta = (adjust.dir === "in" ? 1 : -1) * (+amount || 0);
+    adjustStock(adjust.item.id, delta);
     setList((prev) =>
       prev.map((s) => {
         if (s.id !== adjust.item.id) return s;

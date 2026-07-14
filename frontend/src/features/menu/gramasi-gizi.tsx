@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Scale, Beef, Wheat, Droplet, Leaf, CheckCircle2, AlertTriangle } from "lucide-react";
 import {
   PageHeader,
@@ -13,10 +13,20 @@ import {
 } from "@/components/ui";
 import { BarChart } from "@/components/charts";
 import { nutritionTargets, type NutritionRow } from "@/mocks/mbg-data";
+import { getNutritionTargets } from "@/services/nutrition-service";
 
 export default function GramasiGizi() {
+  const [targets, setTargets] = useState<NutritionRow[]>(nutritionTargets);
   const [kelompok, setKelompok] = useState(nutritionTargets[1].id);
-  const active = nutritionTargets.find((n) => n.id === kelompok)!;
+  useEffect(() => {
+    getNutritionTargets().then((rows) => {
+      if (rows.length) {
+        setTargets(rows);
+        setKelompok((prev) => (rows.some((r) => r.id === prev) ? prev : rows[0].id));
+      }
+    });
+  }, []);
+  const active = targets.find((n) => n.id === kelompok) ?? targets[0];
 
   const compliance = Math.round((active.realisasiEnergi / active.energi) * 100);
   const macros = [
@@ -55,7 +65,7 @@ export default function GramasiGizi() {
           <Select
             value={kelompok}
             onChange={setKelompok}
-            options={nutritionTargets.map((n) => ({ value: n.id, label: n.kelompok }))}
+            options={targets.map((n) => ({ value: n.id, label: n.kelompok }))}
           />
         }
       />
@@ -118,7 +128,7 @@ export default function GramasiGizi() {
         <SectionTitle>Perbandingan Target Energi Antar Kelompok (kkal)</SectionTitle>
         <BarChart
           unit=" kkal"
-          data={nutritionTargets.map((n) => ({
+          data={targets.map((n) => ({
             label: n.kelompok.split(" ")[0] + (n.kelompok.includes("Kelas") ? " " + n.kelompok.split(" ")[2] : ""),
             value: n.energi,
             highlight: n.id === kelompok,
@@ -132,7 +142,7 @@ export default function GramasiGizi() {
           <p className="text-xs text-gray-400 mt-0.5">Mengacu pada Angka Kecukupan Gizi (AKG) Kemenkes</p>
         </div>
         <div className="p-2">
-          <DataTable columns={columns} data={nutritionTargets} />
+          <DataTable columns={columns} data={targets} />
         </div>
       </Card>
     </div>

@@ -23,7 +23,7 @@ export class LogisticsService {
 
   async findOne(id: string) {
     const vehicle = await this.prisma.vehicle.findUnique({ where: { id } });
-    if (!vehicle) throw new NotFoundException('Vehicle not found');
+    if (!vehicle) throw new NotFoundException('Kendaraan tidak ditemukan');
     return vehicle;
   }
 

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { FileText, FilePlus2, Download, Eye, TrendingUp, Package } from "lucide-react";
 import {
   PageHeader,
@@ -20,6 +20,7 @@ import {
 } from "@/components/ui";
 import { LineChart } from "@/components/charts";
 import { opsReports, type OpsReport } from "@/mocks/mbg-data";
+import { createOpsReport, getOpsReports } from "@/services/reports-service";
 
 const statusColor: Record<OpsReport["status"], "green" | "gray" | "blue"> = {
   Final: "green",
@@ -30,6 +31,9 @@ const statusColor: Record<OpsReport["status"], "green" | "gray" | "blue"> = {
 export default function LaporanOperasional() {
   const { toast } = useToast();
   const [list, setList] = useState<OpsReport[]>(opsReports);
+  useEffect(() => {
+    getOpsReports().then((rows) => rows.length && setList(rows));
+  }, []);
   const [periode, setPeriode] = useState("all");
   const [generating, setGenerating] = useState(false);
   const [view, setView] = useState<OpsReport | null>(null);
@@ -46,10 +50,12 @@ export default function LaporanOperasional() {
       toast("Tentukan periode laporan.", "error");
       return;
     }
-    setList((prev) => [
-      { id: `o${Date.now()}`, judul: form.judul, periode: form.periode, dapur: form.dapur, porsiTerkirim: 1580, porsiTerencana: 1650, realisasiBiaya: 27650000, status: "Draft", tanggal: new Date().toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" }) },
-      ...prev,
-    ]);
+    const report: OpsReport = { id: `o${Date.now()}`, judul: form.judul, periode: form.periode, dapur: form.dapur, porsiTerkirim: 1580, porsiTerencana: 1650, realisasiBiaya: 27650000, status: "Draft", tanggal: new Date().toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" }) };
+    const { id: localId, ...payload } = report;
+    createOpsReport(payload).then((saved) => {
+      if (saved) setList((prev) => prev.map((x) => (x.id === localId ? { ...x, id: saved.id } : x)));
+    });
+    setList((prev) => [report, ...prev]);
     setGenerating(false);
     setForm({ judul: "Laporan Operasional Harian", dapur: "SPPG Dapur Pusat Senen", periode: "" });
     toast("Laporan operasional dibuat sebagai draft.");

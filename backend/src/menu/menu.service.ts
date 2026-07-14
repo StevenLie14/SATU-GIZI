@@ -23,7 +23,7 @@ export class MenuService {
 
   async findOne(id: string) {
     const plan = await this.prisma.menuPlan.findUnique({ where: { id } });
-    if (!plan) throw new NotFoundException('Menu plan not found');
+    if (!plan) throw new NotFoundException('Rencana menu tidak ditemukan');
     return plan;
   }
 

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
   LineChart as LineChartIcon,
@@ -28,7 +28,22 @@ import {
   shortHash,
 } from "@/components/ui";
 import { LineChart } from "@/components/charts";
-import { demandForecast, priceForecast, regionBalances, redistRecommendations } from "@/mocks/mbg-data";
+import {
+  demandForecast as seedDemand,
+  priceForecast as seedPrice,
+  regionBalances as seedBalances,
+  redistRecommendations as seedRedist,
+  type RedistRec,
+  type RegionBalance,
+} from "@/mocks/mbg-data";
+import {
+  getDemandForecast,
+  getPriceForecast,
+  getRedistRecommendations,
+  getRegionBalances,
+  type DemandForecast,
+  type PriceForecastRow,
+} from "@/services/analytics-service";
 import { anchorRecord, getAuditTrail } from "@/lib/blockchain";
 import RouteOptimizerPanel from "@/features/rantai-pasok/route-optimizer-panel";
 
@@ -36,6 +51,17 @@ export default function AnalitikPeramalan() {
   const { toast } = useToast();
   const [tab, setTab] = useState("demand");
   const [komoditas, setKomoditas] = useState("Sayuran");
+  const [demandForecast, setDemand] = useState<DemandForecast>(seedDemand);
+  const [priceForecast, setPrice] = useState<PriceForecastRow[]>(seedPrice);
+  const [regionBalances, setBalances] = useState<RegionBalance[]>(seedBalances);
+  const [redistRecommendations, setRedist] = useState<RedistRec[]>(seedRedist);
+
+  useEffect(() => {
+    getDemandForecast().then(setDemand);
+    getPriceForecast().then(setPrice);
+    getRegionBalances().then(setBalances);
+    getRedistRecommendations().then(setRedist);
+  }, []);
 
   const maxAbs = Math.max(...regionBalances.map((r) => Math.abs(r.surplus)));
 

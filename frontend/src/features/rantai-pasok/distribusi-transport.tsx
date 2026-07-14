@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Truck, Plus, Navigation, Gauge, Wrench, MapPin, Route, Fuel } from "lucide-react";
 import {
@@ -15,6 +15,7 @@ import {
   type Column,
 } from "@/components/ui";
 import { vehicles as seed, type Vehicle } from "@/mocks/mbg-data";
+import { getVehicles } from "@/services/logistics-service";
 
 const statusColor: Record<Vehicle["status"], "blue" | "green" | "amber"> = {
   "Dalam Perjalanan": "blue",
@@ -24,7 +25,10 @@ const statusColor: Record<Vehicle["status"], "blue" | "green" | "amber"> = {
 
 export default function DistribusiTransport() {
   const { toast } = useToast();
-  const [list] = useState<Vehicle[]>(seed);
+  const [list, setList] = useState<Vehicle[]>(seed);
+  useEffect(() => {
+    getVehicles().then(setList);
+  }, []);
   const [routeOpen, setRouteOpen] = useState(false);
 
   const totalKapasitas = list.reduce((a, v) => a + v.kapasitas, 0);

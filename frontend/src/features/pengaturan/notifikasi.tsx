@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Bell,
   Truck,
@@ -20,6 +20,11 @@ import {
   cn,
 } from "@/components/ui";
 import { notifications as seed, type AppNotification } from "@/mocks/mbg-data";
+import {
+  getNotifications,
+  markAllNotificationsRead,
+  markNotificationRead,
+} from "@/services/notifications-service";
 
 const kategoriIcon: Record<AppNotification["kategori"], React.ComponentType<{ size?: number }>> = {
   Distribusi: Truck,
@@ -54,6 +59,9 @@ function Toggle({ on, onClick }: { on: boolean; onClick: () => void }) {
 export default function Notifikasi() {
   const { toast } = useToast();
   const [list, setList] = useState<AppNotification[]>(seed);
+  useEffect(() => {
+    getNotifications().then((rows) => rows.length && setList(rows));
+  }, []);
   const [tab, setTab] = useState("all");
   const [prefs, setPrefs] = useState({
     Distribusi: true,
@@ -69,8 +77,8 @@ export default function Notifikasi() {
   const unread = list.filter((n) => !n.dibaca).length;
   const filtered = list.filter((n) => tab === "all" || (tab === "unread" ? !n.dibaca : n.kategori.toLowerCase() === tab));
 
-  const markAll = () => { setList((prev) => prev.map((n) => ({ ...n, dibaca: true }))); toast("Semua notifikasi ditandai dibaca."); };
-  const markRead = (id: string) => setList((prev) => prev.map((n) => (n.id === id ? { ...n, dibaca: true } : n)));
+  const markAll = () => { markAllNotificationsRead(); setList((prev) => prev.map((n) => ({ ...n, dibaca: true }))); toast("Semua notifikasi ditandai dibaca."); };
+  const markRead = (id: string) => { markNotificationRead(id); setList((prev) => prev.map((n) => (n.id === id ? { ...n, dibaca: true } : n))); };
   const remove = (id: string) => { setList((prev) => prev.filter((n) => n.id !== id)); toast("Notifikasi dihapus.", "info"); };
 
   return (

@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Wallet, Plus, Check, X, Pencil, Trash2, FileDown, PieChart } from "lucide-react";
 import {
   PageHeader,
@@ -20,6 +20,7 @@ import {
 import { DonutChart } from "@/components/charts";
 import { useRole } from "@/context/role-context";
 import { budgetItems, type BudgetItem } from "@/mocks/mbg-data";
+import { createBudgetItem, getBudgetItems, setBudgetItemStatus } from "@/services/budget-service";
 
 const statusColor: Record<BudgetItem["status"], "green" | "amber" | "red"> = {
   Disetujui: "green",
@@ -34,6 +35,9 @@ export default function RencanaBelanja() {
   const { toast } = useToast();
   const isGov = role === "pemerintah";
   const [items, setItems] = useState<BudgetItem[]>(budgetItems);
+  useEffect(() => {
+    getBudgetItems().then((rows) => rows.length && setItems(rows));
+  }, []);
   const [query, setQuery] = useState("");
   const [kategori, setKategori] = useState("all");
   const [modal, setModal] = useState<{ mode: "add" | "edit"; data?: BudgetItem } | null>(null);
@@ -82,16 +86,19 @@ export default function RencanaBelanja() {
       );
       toast("Item belanja diperbarui.");
     } else {
-      setItems((prev) => [
-        { id: `b${Date.now()}`, kategori: form.kategori || "Lainnya", item: form.item, qty: +form.qty, satuan: form.satuan, hargaSatuan: +form.hargaSatuan, periode: "Juni 2026", status: "Menunggu" },
-        ...prev,
-      ]);
+      const item: BudgetItem = { id: `b${Date.now()}`, kategori: form.kategori || "Lainnya", item: form.item, qty: +form.qty, satuan: form.satuan, hargaSatuan: +form.hargaSatuan, periode: "Juni 2026", status: "Menunggu" };
+      const { id: localId, ...payload } = item;
+      createBudgetItem(payload).then((saved) => {
+        if (saved) setItems((prev) => prev.map((x) => (x.id === localId ? { ...x, id: saved.id } : x)));
+      });
+      setItems((prev) => [item, ...prev]);
       toast("Item belanja ditambahkan.");
     }
     setModal(null);
   };
 
   const setStatus = (b: BudgetItem, status: BudgetItem["status"]) => {
+    setBudgetItemStatus(b.id, status);
     setItems((prev) => prev.map((x) => (x.id === b.id ? { ...x, status } : x)));
     toast(`${b.item} ditandai "${status}".`);
   };

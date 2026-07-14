@@ -63,7 +63,7 @@ export class EntitiesService {
   async findOne(type: string, id: string) {
     if (type === 'school') {
       const s = await this.prisma.school.findUnique({ where: { id } });
-      if (!s) throw new NotFoundException('School not found');
+      if (!s) throw new NotFoundException('Sekolah tidak ditemukan');
       return {
         id: s.id,
         name: s.name,
@@ -80,7 +80,7 @@ export class EntitiesService {
 
     if (type === 'kitchen') {
       const k = await this.prisma.kitchen.findUnique({ where: { id } });
-      if (!k) throw new NotFoundException('Kitchen not found');
+      if (!k) throw new NotFoundException('Dapur tidak ditemukan');
       return {
         id: k.id,
         name: k.name,
@@ -100,7 +100,7 @@ export class EntitiesService {
       const v = await this.prisma.user.findFirst({
         where: { id, role: Role.MITRA },
       });
-      if (!v) throw new NotFoundException('Vendor not found');
+      if (!v) throw new NotFoundException('Vendor tidak ditemukan');
       return {
         id: v.id,
         name: v.businessName || v.name || 'Vendor Pemasok',
@@ -117,7 +117,7 @@ export class EntitiesService {
       };
     }
 
-    throw new BadRequestException('Invalid entity type');
+    throw new BadRequestException('Tipe entitas tidak valid');
   }
 
   async findById(id: string) {
@@ -177,7 +177,7 @@ export class EntitiesService {
       };
     }
 
-    throw new NotFoundException('Entity not found');
+    throw new NotFoundException('Entitas tidak ditemukan');
   }
 
   async create(dto: CreateEntityDto) {
@@ -255,6 +255,6 @@ export class EntitiesService {
       };
     }
 
-    throw new BadRequestException('Invalid entity type');
+    throw new BadRequestException('Tipe entitas tidak valid');
   }
 }

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
   ShoppingCart,
@@ -29,6 +29,12 @@ import {
   type Column,
 } from "@/components/ui";
 import { purchaseOrders, matchRecommendations, type PurchaseOrder, type MatchRec } from "@/mocks/mbg-data";
+import {
+  createPurchaseOrder,
+  getMatchRecommendations,
+  getPurchaseOrders,
+  updatePurchaseOrder,
+} from "@/services/procurement-service";
 import MatchmakingPanel from "@/features/rantai-pasok/matchmaking-panel";
 
 const statusColor: Record<PurchaseOrder["status"], "green" | "blue" | "amber" | "gray"> = {
@@ -48,13 +54,21 @@ export default function Procurement() {
   const [komoditas, setKomoditas] = useState(matchKeys[0]);
   const [qty, setQty] = useState("400");
   const [chosen, setChosen] = useState<MatchRec | null>(null);
+  const [recs, setRecs] = useState<MatchRec[]>(matchRecommendations[komoditas] || []);
 
-  const recs = matchRecommendations[komoditas] || [];
+  useEffect(() => {
+    getPurchaseOrders().then(setOrders);
+  }, []);
+  useEffect(() => {
+    getMatchRecommendations(komoditas).then(setRecs);
+  }, [komoditas]);
+
   const totalNilai = orders.reduce((a, o) => a + o.nilai, 0);
 
   const advance = (o: PurchaseOrder) => {
     const flow: PurchaseOrder["status"][] = ["Draft", "Menunggu Konfirmasi", "Dikirim", "Diterima"];
     const next = flow[Math.min(flow.indexOf(o.status) + 1, flow.length - 1)];
+    updatePurchaseOrder(o.id, { status: next });
     setOrders((prev) => prev.map((x) => (x.id === o.id ? { ...x, status: next } : x)));
     toast(`${o.kode} → ${next}`);
   };
@@ -65,20 +79,22 @@ export default function Procurement() {
       return;
     }
     const q = +qty || 0;
-    setOrders((prev) => [
-      {
-        id: `po${Date.now()}`,
-        kode: `PO-${new Date().toISOString().slice(5, 10).replace("-", "")}-${String(prev.length + 1).padStart(3, "0")}`,
-        komoditas,
-        qty: q,
-        satuan: chosen.satuan,
-        supplier: chosen.supplier,
-        nilai: q * chosen.harga,
-        status: "Menunggu Konfirmasi",
-        tanggal: new Date().toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" }),
-      },
-      ...prev,
-    ]);
+    const po: PurchaseOrder = {
+      id: `po${Date.now()}`,
+      kode: `PO-${new Date().toISOString().slice(5, 10).replace("-", "")}-${String(orders.length + 1).padStart(3, "0")}`,
+      komoditas,
+      qty: q,
+      satuan: chosen.satuan,
+      supplier: chosen.supplier,
+      nilai: q * chosen.harga,
+      status: "Menunggu Konfirmasi",
+      tanggal: new Date().toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" }),
+    };
+    const { id: localId, ...payload } = po;
+    createPurchaseOrder(payload).then((saved) => {
+      if (saved) setOrders((prev) => prev.map((x) => (x.id === localId ? { ...x, id: saved.id } : x)));
+    });
+    setOrders((prev) => [po, ...prev]);
     setMatching(false);
     setChosen(null);
     setTab("po");

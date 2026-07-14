@@ -30,7 +30,7 @@ export class RfqService {
   /** RFQ with quotes ranked by the AI match score. */
   async findOne(id: string) {
     const rfq = await this.prisma.rfq.findUnique({ where: { id }, include: { quotes: true } });
-    if (!rfq) throw new NotFoundException('RFQ not found');
+    if (!rfq) throw new NotFoundException('RFQ tidak ditemukan');
     const ranked = rfq.quotes
       .map((qt) => {
         const { score, reasons } = scoreSupplierMatch({
@@ -95,7 +95,7 @@ export class RfqService {
 
   private async ensure(id: string) {
     const rfq = await this.prisma.rfq.findUnique({ where: { id } });
-    if (!rfq) throw new NotFoundException('RFQ not found');
+    if (!rfq) throw new NotFoundException('RFQ tidak ditemukan');
     return rfq;
   }
 }

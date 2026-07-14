@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { FileSignature, Plus, Check, X, Eye, Wallet, Clock, CheckCircle2 } from "lucide-react";
 import {
   PageHeader,
@@ -20,6 +20,11 @@ import {
 } from "@/components/ui";
 import { useRole } from "@/context/role-context";
 import { budgetProposals, type BudgetProposal } from "@/mocks/mbg-data";
+import {
+  createBudgetProposal,
+  getBudgetProposals,
+  setProposalStatus,
+} from "@/services/proposals-service";
 
 const statusColor: Record<BudgetProposal["status"], "green" | "amber" | "red" | "blue"> = {
   Disetujui: "green",
@@ -33,6 +38,9 @@ export default function ProposalAnggaran() {
   const { toast } = useToast();
   const isGov = role === "pemerintah";
   const [list, setList] = useState<BudgetProposal[]>(budgetProposals);
+  useEffect(() => {
+    getBudgetProposals().then((rows) => rows.length && setList(rows));
+  }, []);
   const [tab, setTab] = useState("all");
   const [adding, setAdding] = useState(false);
   const [view, setView] = useState<BudgetProposal | null>(null);
@@ -48,16 +56,19 @@ export default function ProposalAnggaran() {
       toast("Judul dan nilai wajib diisi.", "error");
       return;
     }
-    setList((prev) => [
-      { id: `bp${Date.now()}`, judul: form.judul, pengaju: role === "sppg" ? "SPPG Dapur Pusat Senen" : "SPPG", periode: form.periode || "—", nilai: +form.nilai, status: "Diajukan", tanggal: new Date().toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" }) },
-      ...prev,
-    ]);
+    const proposal: BudgetProposal = { id: `bp${Date.now()}`, judul: form.judul, pengaju: role === "sppg" ? "SPPG Dapur Pusat Senen" : "SPPG", periode: form.periode || "—", nilai: +form.nilai, status: "Diajukan", tanggal: new Date().toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" }) };
+    const { id: localId, status: _s, ...payload } = proposal;
+    createBudgetProposal({ ...payload, status: "Diajukan" }).then((saved) => {
+      if (saved) setList((prev) => prev.map((x) => (x.id === localId ? { ...x, id: saved.id } : x)));
+    });
+    setList((prev) => [proposal, ...prev]);
     setAdding(false);
     setForm({ judul: "", periode: "", nilai: "", catatan: "" });
     toast("Proposal anggaran diajukan ke pemerintah.");
   };
 
   const decide = (p: BudgetProposal, status: BudgetProposal["status"]) => {
+    setProposalStatus(p.id, status);
     setList((prev) => prev.map((x) => (x.id === p.id ? { ...x, status } : x)));
     setView((v) => (v && v.id === p.id ? { ...v, status } : v));
     toast(`Proposal "${p.judul}" ${status.toLowerCase()}.`);

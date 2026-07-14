@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Handshake, Plus, Star, Phone, FileText, Pencil, Eye } from "lucide-react";
 import {
   PageHeader,
@@ -18,6 +18,7 @@ import {
   type Column,
 } from "@/components/ui";
 import { mitraList, type Mitra as MitraType } from "@/mocks/mbg-data";
+import { createPartner, getPartners } from "@/services/partners-service";
 
 const statusColor: Record<MitraType["status"], "green" | "amber" | "gray"> = {
   Aktif: "green",
@@ -28,6 +29,9 @@ const statusColor: Record<MitraType["status"], "green" | "amber" | "gray"> = {
 export default function Mitra() {
   const { toast } = useToast();
   const [list, setList] = useState<MitraType[]>(mitraList);
+  useEffect(() => {
+    getPartners().then((rows) => rows.length && setList(rows));
+  }, []);
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState("all");
   const [adding, setAdding] = useState(false);
@@ -45,7 +49,11 @@ export default function Mitra() {
       toast("Nama dan jenis mitra wajib diisi.", "error");
       return;
     }
-    setList((prev) => [{ id: `mt${Date.now()}`, nama: form.nama, jenis: form.jenis, pic: form.pic || "—", kontak: form.kontak || "—", kontrak: form.kontrak || "—", status: "Tinjau Ulang", rating: 5 }, ...prev]);
+    const localId = `mt${Date.now()}`;
+    createPartner({ nama: form.nama, jenis: form.jenis, pic: form.pic || "—", kontak: form.kontak || "—", kontrak: form.kontrak || "—" }).then((saved) => {
+      if (saved) setList((prev) => prev.map((x) => (x.id === localId ? { ...x, id: saved.id } : x)));
+    });
+    setList((prev) => [{ id: localId, nama: form.nama, jenis: form.jenis, pic: form.pic || "—", kontak: form.kontak || "—", kontrak: form.kontrak || "—", status: "Tinjau Ulang", rating: 5 }, ...prev]);
     setAdding(false);
     setForm({ nama: "", jenis: "", pic: "", kontak: "", kontrak: "" });
     toast("Mitra baru terdaftar (menunggu verifikasi).");

@@ -22,7 +22,7 @@ export class CatalogService {
 
   async findOne(id: string) {
     const item = await this.prisma.catalogItem.findUnique({ where: { id } });
-    if (!item) throw new NotFoundException('Catalog item not found');
+    if (!item) throw new NotFoundException('Item katalog tidak ditemukan');
     return item;
   }
 

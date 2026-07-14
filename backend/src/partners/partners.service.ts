@@ -22,7 +22,7 @@ export class PartnersService {
 
   async findOne(id: string) {
     const partner = await this.prisma.partner.findUnique({ where: { id } });
-    if (!partner) throw new NotFoundException('Partner not found');
+    if (!partner) throw new NotFoundException('Mitra tidak ditemukan');
     return partner;
   }
 
