@@ -6,7 +6,11 @@
  * is available to switch back to live API calls.
  */
 export const env = {
-  apiUrl: import.meta.env.VITE_API_URL ?? "http://localhost:3000",
+  // Production build: same-origin ("" → /auth/login, /api/...), routed to the
+  // backend service by the vercel.json rewrites. Dev: VITE_API_URL / localhost.
+  apiUrl: import.meta.env.PROD
+    ? ""
+    : (import.meta.env.VITE_API_URL ?? "http://localhost:3000"),
   offlineMode: (import.meta.env.VITE_OFFLINE_MODE ?? "true") !== "false",
   chainName: import.meta.env.VITE_CHAIN_NAME ?? "MBG Chain Testnet",
   chainId: Number(import.meta.env.VITE_CHAIN_ID ?? 31337),

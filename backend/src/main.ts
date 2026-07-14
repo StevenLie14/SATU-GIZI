@@ -8,7 +8,18 @@ import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
 async function createApp(): Promise<INestApplication> {
   const app = await NestFactory.create(AppModule);
 
-  app.use(helmet());
+  // CSP must allow the CDN that serves Swagger UI assets (see SwaggerModule.setup).
+  app.use(
+    helmet({
+      contentSecurityPolicy: {
+        directives: {
+          'script-src': ["'self'", 'https://cdn.jsdelivr.net'],
+          'style-src': ["'self'", "'unsafe-inline'", 'https://cdn.jsdelivr.net'],
+          'img-src': ["'self'", 'data:', 'https://cdn.jsdelivr.net'],
+        },
+      },
+    }),
+  );
   app.enableCors({ origin: true, credentials: true });
 
   app.useGlobalPipes(
@@ -31,7 +42,16 @@ async function createApp(): Promise<INestApplication> {
     .addBearerAuth()
     .build();
   const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('docs', app, document);
+  // Static assets from node_modules/swagger-ui-dist are not bundled into the
+  // Vercel serverless function, so load them from a CDN instead.
+  SwaggerModule.setup('docs', app, document, {
+    customCssUrl:
+      'https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui.css',
+    customJs: [
+      'https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui-bundle.js',
+      'https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui-standalone-preset.js',
+    ],
+  });
 
   return app;
 }
