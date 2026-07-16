@@ -13,7 +13,6 @@ export interface GeoRule {
   active: boolean;
 }
 
-/** Fallback offline — cerminan default backend. */
 export const DEFAULT_RULES: GeoRule[] = [
   { scope: "SCHOOL_ASSIGNMENT", radiusKm: 10, centerLat: null, centerLng: null, active: true },
   { scope: "SUPPLIER_MATCH", radiusKm: 60, centerLat: null, centerLng: null, active: true },
@@ -25,7 +24,6 @@ export async function getGeoRules(): Promise<GeoRule[]> {
     try {
       return await apiGet<GeoRule[]>("/api/geo-rules");
     } catch {
-      /* fall through */
     }
   }
   return DEFAULT_RULES;
