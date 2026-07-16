@@ -10,6 +10,7 @@ import {
   DistributionStage,
 } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
+import { REAL_SCHOOLS, REAL_SUPPLIERS } from './seed-data/real-locations';
 
 const prisma = new PrismaClient();
 
@@ -50,6 +51,7 @@ async function main() {
     prisma.catalogItem.deleteMany(),
     prisma.regionBalance.deleteMany(),
     prisma.redistributionRec.deleteMany(),
+    prisma.geoRule.deleteMany(),
     prisma.user.deleteMany(),
   ]);
 
@@ -68,7 +70,7 @@ async function main() {
   const senen = await prisma.kitchen.create({
     data: {
       name: 'SPPG Dapur Pusat Senen', latitude: -6.192, longitude: 106.845, address: 'Pasar Senen Lt. 4, Jakarta Pusat',
-      capacity: 2000, rating: 4.7, phone: '021-7890001', kepala: 'Chef Wawan',
+      capacity: 2000, serviceRadiusKm: 8, rating: 4.7, phone: '021-7890001', kepala: 'Chef Wawan',
       izinStatus: PermitStatus.BERLAKU, izinNomor: 'SLHS/2026/JKT/0112', izinBerlaku: 's.d 31 Des 2026', skorPengawasan: 92,
       checklist: { create: [
         { label: 'Sertifikat Laik Higiene Sanitasi (SLHS)', done: true },
@@ -104,6 +106,15 @@ async function main() {
       { name: 'SMPN 19 Jakarta', latitude: -6.23, longitude: 106.86, address: 'Jl. Bumi Manti, Tebet', capacity: 540, jenjang: 'SMP', students: 540, kitchenId: tebet.id },
     ].map((s) => prisma.school.create({ data: s })),
   );
+
+  // Sekolah nyata dari OpenStreetMap (lihat prisma/seed-data/real-locations.ts)
+  const kitchenIdOf = { senen: senen.id, tebet: tebet.id } as const;
+  await prisma.school.createMany({
+    data: REAL_SCHOOLS.map(({ kitchen, ...s }) => ({
+      ...s,
+      kitchenId: kitchen ? kitchenIdOf[kitchen] : null,
+    })),
+  });
 
   // ---- Distribution batches ----
   await prisma.distributionBatch.createMany({
@@ -157,11 +168,15 @@ async function main() {
   });
   await prisma.supplier.createMany({
     data: [
-      { nama: 'PT Maju Tani Pangan', komoditas: ['Beras', 'Sayuran'], lokasi: 'Jakarta Selatan', hargaIndex: 96, leadTime: '1 hari', rating: 4.8, status: GenericStatus.AKTIF },
-      { nama: 'CV Berkah Lauk', komoditas: ['Daging Ayam', 'Telur'], lokasi: 'Jakarta Pusat', hargaIndex: 102, leadTime: '1 hari', rating: 4.6, status: GenericStatus.AKTIF },
-      { nama: 'Agen Sayur Segar Ciawi', komoditas: ['Sayuran', 'Tomat'], lokasi: 'Bogor', hargaIndex: 98, leadTime: '1 hari', rating: 4.7, status: GenericStatus.AKTIF },
-      { nama: 'Koperasi Tani Nusantara', komoditas: ['Buah', 'Sayuran', 'Susu'], lokasi: 'Bandung', hargaIndex: 94, leadTime: '2 hari', rating: 4.9, status: GenericStatus.AKTIF },
+      { nama: 'PT Maju Tani Pangan', komoditas: ['Beras', 'Sayuran'], lokasi: 'Jakarta Selatan', latitude: -6.244, longitude: 106.8, hargaIndex: 96, leadTime: '1 hari', rating: 4.8, status: GenericStatus.AKTIF },
+      { nama: 'CV Berkah Lauk', komoditas: ['Daging Ayam', 'Telur'], lokasi: 'Jakarta Pusat', latitude: -6.186, longitude: 106.837, hargaIndex: 102, leadTime: '1 hari', rating: 4.6, status: GenericStatus.AKTIF },
+      { nama: 'Agen Sayur Segar Ciawi', komoditas: ['Sayuran', 'Tomat'], lokasi: 'Bogor', latitude: -6.655, longitude: 106.855, hargaIndex: 98, leadTime: '1 hari', rating: 4.7, status: GenericStatus.AKTIF },
+      { nama: 'Koperasi Tani Nusantara', komoditas: ['Buah', 'Sayuran', 'Susu'], lokasi: 'Bandung', latitude: -6.914, longitude: 107.609, hargaIndex: 94, leadTime: '2 hari', rating: 4.9, status: GenericStatus.AKTIF },
     ],
+  });
+  // Pasar nyata dari OpenStreetMap sebagai supplier tambahan
+  await prisma.supplier.createMany({
+    data: REAL_SUPPLIERS.map((s) => ({ ...s, status: GenericStatus.AKTIF })),
   });
   await prisma.localProducer.createMany({
     data: [
@@ -293,10 +308,15 @@ async function main() {
       { region: 'Bogor', surplus: 2100, komoditas: 'Sayuran' },
     ],
   });
-  await prisma.redistributionRec.createMany({
+  // Rekomendasi redistribusi kini diturunkan dari RegionBalance + aturan radius
+  // (lihat AnalyticsService.redistribution) — tidak lagi di-seed statis.
+
+  // ---- Aturan wilayah (titik pusat + radius) ----
+  await prisma.geoRule.createMany({
     data: [
-      { fromRegion: 'Bandung', toRegion: 'Jakarta Selatan', komoditas: 'Sayuran', jumlah: 2500, satuan: 'kg', jarak: '150 km', hemat: 'Rp 6,2 jt', status: 'Direkomendasikan' },
-      { fromRegion: 'Bogor', toRegion: 'Jakarta Pusat', komoditas: 'Sayuran', jumlah: 1500, satuan: 'kg', jarak: '60 km', hemat: 'Rp 3,1 jt', status: 'Direkomendasikan' },
+      { scope: 'SCHOOL_ASSIGNMENT', radiusKm: 10 },
+      { scope: 'SUPPLIER_MATCH', radiusKm: 60 },
+      { scope: 'REDISTRIBUTION', radiusKm: 160 },
     ],
   });
 
