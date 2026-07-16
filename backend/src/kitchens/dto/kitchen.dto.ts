@@ -7,6 +7,7 @@ export class CreateKitchenDto {
   @IsNumber() longitude: number;
   @IsString() address: string;
   @IsInt() capacity: number;
+  @IsOptional() @IsNumber() @Min(1) @Max(500) serviceRadiusKm?: number;
   @IsOptional() @IsString() kepala?: string;
   @IsOptional() @IsString() status?: string;
   @IsOptional() @IsString() description?: string;

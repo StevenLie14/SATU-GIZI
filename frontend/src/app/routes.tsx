@@ -39,6 +39,7 @@ import AnalitikPeramalan from "@/features/rantai-pasok/analitik-peramalan";
 import BlockchainVerifikasi from "@/features/blockchain/blockchain-verifikasi";
 import Akun from "@/features/pengaturan/akun";
 import Notifikasi from "@/features/pengaturan/notifikasi";
+import AturanWilayah from "@/features/pengaturan/aturan-wilayah";
 
 export function AppRoutes() {
   return (
@@ -97,6 +98,7 @@ export function AppRoutes() {
 
         <Route path="pengaturan/akun" element={<Akun />} />
         <Route path="pengaturan/notifikasi" element={<Notifikasi />} />
+        <Route path="pengaturan/aturan-wilayah" element={<AturanWilayah />} />
       </Route>
 
       <Route path="*" element={<Navigate to="/" replace />} />

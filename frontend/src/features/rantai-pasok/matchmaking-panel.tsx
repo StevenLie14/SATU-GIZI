@@ -19,6 +19,7 @@ import {
 import { Card, Badge, Button, SearchInput, SectionTitle, cn } from "@/components/ui";
 import RouteMap, { type MapNode, type MapLink } from "@/components/common/route-map";
 import { getEntities } from "@/services/entities-service";
+import { getGeoRules } from "@/services/geo-rules-service";
 import { buildMatches, formatKm, formatEta, type VendorMatch, type RiskLevel } from "@/lib/geo";
 import type { GeoEntity } from "@/types";
 
@@ -79,6 +80,11 @@ export default function MatchmakingPanel() {
 
   useEffect(() => {
     getEntities().then(setEntities);
+    // Default radius mengikuti Aturan Wilayah (scope SUPPLIER_MATCH), clamp ke max slider.
+    getGeoRules().then((rules) => {
+      const rule = rules.find((r) => r.scope === "SUPPLIER_MATCH");
+      if (rule?.active) setRadiusKm(Math.min(50, Math.round(rule.radiusKm)));
+    });
   }, []);
 
   const matches = useMemo(() => {
@@ -177,6 +183,7 @@ export default function MatchmakingPanel() {
                   <span>1 km</span>
                   <span>50 km</span>
                 </div>
+                <p className="text-[10px] text-gray-400 mt-1">Default dari Aturan Wilayah</p>
               </div>
 
               <div>

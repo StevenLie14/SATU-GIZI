@@ -51,6 +51,7 @@ import { AnalyticsModule } from './analytics/analytics.module';
 // Cross-cutting
 import { AiModule } from './ai/ai.module';
 import { NotificationsModule } from './notifications/notifications.module';
+import { GeoRulesModule } from './geo-rules/geo-rules.module';
 
 @Module({
   imports: [
@@ -85,6 +86,7 @@ import { NotificationsModule } from './notifications/notifications.module';
     AnalyticsModule,
     AiModule,
     NotificationsModule,
+    GeoRulesModule,
   ],
   controllers: [AppController],
   providers: [

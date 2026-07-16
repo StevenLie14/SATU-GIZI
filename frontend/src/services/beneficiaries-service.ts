@@ -1,4 +1,4 @@
-import { apiPost, listOrFallback, tryApi } from "@/services/api-client";
+import { apiGet, apiPost, listOrFallback, tryApi } from "@/services/api-client";
 import { beneficiaries, type Beneficiary } from "@/mocks/mbg-data";
 
 interface ApiBeneficiary {
@@ -32,4 +32,26 @@ export const createBeneficiary = (b: {
   latitude: number;
   longitude: number;
   capacity: number;
+  kitchenId?: string;
 }) => tryApi(() => apiPost<ApiBeneficiary>("/api/beneficiaries", b));
+
+/* ---------- Rekomendasi dapur berbasis aturan radius ----------------- */
+
+export interface KitchenRecommendation {
+  kitchenId: string;
+  name: string;
+  address: string;
+  distanceKm: number;
+  radiusKm: number;
+  inRadius: boolean;
+}
+
+export interface RecommendKitchenResult {
+  rule: { radiusKm: number; active: boolean };
+  recommendations: KitchenRecommendation[];
+}
+
+export const recommendKitchen = (lat: number, lng: number) =>
+  tryApi(() =>
+    apiGet<RecommendKitchenResult>(`/api/beneficiaries/recommend-kitchen?lat=${lat}&lng=${lng}`),
+  );

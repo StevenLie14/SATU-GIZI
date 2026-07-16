@@ -136,6 +136,7 @@ export const NAV: NavGroup[] = [
     items: [
       { label: "Akun", path: "/app/pengaturan/akun", roles: ALL },
       { label: "Notifikasi", path: "/app/pengaturan/notifikasi", roles: ALL },
+      { label: "Aturan Wilayah", path: "/app/pengaturan/aturan-wilayah", roles: ["pemerintah"] },
     ],
   },
 ];

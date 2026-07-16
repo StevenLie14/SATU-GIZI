@@ -45,6 +45,7 @@ import {
   type PriceForecastRow,
 } from "@/services/analytics-service";
 import { anchorRecord, getAuditTrail } from "@/lib/blockchain";
+import { getGeoRules } from "@/services/geo-rules-service";
 import RouteOptimizerPanel from "@/features/rantai-pasok/route-optimizer-panel";
 
 export default function AnalitikPeramalan() {
@@ -55,12 +56,17 @@ export default function AnalitikPeramalan() {
   const [priceForecast, setPrice] = useState<PriceForecastRow[]>(seedPrice);
   const [regionBalances, setBalances] = useState<RegionBalance[]>(seedBalances);
   const [redistRecommendations, setRedist] = useState<RedistRec[]>(seedRedist);
+  const [redistRule, setRedistRule] = useState<{ radiusKm: number; active: boolean } | null>(null);
 
   useEffect(() => {
     getDemandForecast().then(setDemand);
     getPriceForecast().then(setPrice);
     getRegionBalances().then(setBalances);
     getRedistRecommendations().then(setRedist);
+    getGeoRules().then((rules) => {
+      const rule = rules.find((r) => r.scope === "REDISTRIBUTION");
+      if (rule) setRedistRule({ radiusKm: rule.radiusKm, active: rule.active });
+    });
   }, []);
 
   const maxAbs = Math.max(...regionBalances.map((r) => Math.abs(r.surplus)));
@@ -215,7 +221,12 @@ export default function AnalitikPeramalan() {
             </div>
           </Card>
 
-          <SectionTitle>Rekomendasi Redistribusi</SectionTitle>
+          <div className="flex items-center justify-between">
+            <SectionTitle>Rekomendasi Redistribusi</SectionTitle>
+            {redistRule?.active && (
+              <Badge color="blue">Radius aturan: {redistRule.radiusKm} km</Badge>
+            )}
+          </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             {redistRecommendations.map((rec, i) => (
               <motion.div key={i} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.08 }}>

@@ -6,6 +6,8 @@ export class CreateSupplierDto {
   @IsString() nama: string;
   @IsArray() @IsString({ each: true }) komoditas: string[];
   @IsString() lokasi: string;
+  @IsOptional() @IsNumber() latitude?: number;
+  @IsOptional() @IsNumber() longitude?: number;
   @IsOptional() @IsInt() hargaIndex?: number;
   @IsOptional() @IsString() leadTime?: string;
   @IsOptional() @IsNumber() rating?: number;

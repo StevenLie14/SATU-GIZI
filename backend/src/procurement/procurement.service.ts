@@ -4,24 +4,19 @@ import { BlockchainService } from '../blockchain/blockchain.service';
 import { paginate } from '../common/utils/paginate';
 import { PaginationQueryDto } from '../common/dto/pagination-query.dto';
 import { scoreSupplierMatch } from '../common/utils/match-score';
+import { haversineKm, regionCentroid, round1, type LatLng } from '../common/utils/geo';
+import { GeoRulesService } from '../geo-rules/geo-rules.service';
 import { CreatePurchaseOrderDto, UpdatePurchaseOrderDto } from './dto/purchase-order.dto';
 
-// rough distance heuristic by region (km from Jakarta hub)
-const DISTANCE: Record<string, number> = {
-  'Jakarta Pusat': 4,
-  'Jakarta Selatan': 6,
-  'Jakarta Utara': 9,
-  'Jakarta Barat': 8,
-  'Jakarta Timur': 10,
-  Bogor: 55,
-  Bandung: 120,
-};
+// Pusat terakhir bila tidak ada dapur maupun pusat aturan (hub Jakarta)
+const JAKARTA_HUB: LatLng = { lat: -6.2, lng: 106.8167 };
 
 @Injectable()
 export class ProcurementService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly blockchain: BlockchainService,
+    private readonly geoRules: GeoRulesService,
   ) {}
 
   findAll(q: PaginationQueryDto) {
@@ -66,17 +61,38 @@ export class ProcurementService {
   }
 
   /**
-   * AI supplier matching for a commodity — ranks verified suppliers by the
-   * weighted match score (price, distance, rating, lead time).
+   * AI supplier matching for a commodity — ranks suppliers by the weighted
+   * match score with real haversine distance from the requesting kitchen
+   * (aturan wilayah SUPPLIER_MATCH menentukan radius dan pusat fallback).
    */
-  async matchSuppliers(komoditas: string) {
+  async matchSuppliers(komoditas: string, kitchenId?: string) {
+    const rule = await this.geoRules.getRule('SUPPLIER_MATCH');
+
+    let center: LatLng | null = null;
+    if (kitchenId) {
+      const kitchen = await this.prisma.kitchen.findUnique({ where: { id: kitchenId } });
+      if (!kitchen) throw new NotFoundException('Dapur tidak ditemukan');
+      center = { lat: kitchen.latitude, lng: kitchen.longitude };
+    } else if (rule.centerLat != null && rule.centerLng != null) {
+      center = { lat: rule.centerLat, lng: rule.centerLng };
+    } else {
+      const firstKitchen = await this.prisma.kitchen.findFirst();
+      center = firstKitchen
+        ? { lat: firstKitchen.latitude, lng: firstKitchen.longitude }
+        : JAKARTA_HUB;
+    }
+
     const suppliers = await this.prisma.supplier.findMany({
       where: { komoditas: { has: komoditas } },
     });
-    return suppliers
+    const scored = suppliers
       .map((s) => {
         const leadTimeDays = parseInt(s.leadTime ?? '1', 10) || 1;
-        const distanceKm = DISTANCE[s.lokasi] ?? 30;
+        const coords: LatLng | null =
+          s.latitude != null && s.longitude != null
+            ? { lat: s.latitude, lng: s.longitude }
+            : regionCentroid(s.lokasi);
+        const distanceKm = coords ? round1(haversineKm(center, coords)) : 30;
         const { score, reasons } = scoreSupplierMatch({
           priceIndex: s.hargaIndex,
           distanceKm,
@@ -90,10 +106,17 @@ export class ProcurementService {
           rating: s.rating,
           leadTime: s.leadTime,
           distanceKm,
+          perkiraan: !coords,
+          dalamRadius: !rule.active || distanceKm <= rule.radiusKm,
+          radiusKm: rule.radiusKm,
           skor: score,
           alasan: reasons.join(' · '),
         };
       })
       .sort((a, b) => b.skor - a.skor);
+
+    // Panel kosong lebih buruk daripada saran di luar radius — fallback ke daftar penuh
+    const inRadius = scored.filter((s) => s.dalamRadius);
+    return inRadius.length ? inRadius : scored;
   }
 }

@@ -14,11 +14,19 @@ import {
   TextInput,
   SectionTitle,
   useToast,
+  cn,
   type Column,
 } from "@/components/ui";
 import { BarChart } from "@/components/charts";
-import { beneficiaries, type Beneficiary } from "@/mocks/mbg-data";
-import { createBeneficiary, getBeneficiaries } from "@/services/beneficiaries-service";
+import { beneficiaries, type Beneficiary, type Kitchen } from "@/mocks/mbg-data";
+import { createBeneficiary, getBeneficiaries, recommendKitchen } from "@/services/beneficiaries-service";
+import { getKitchens } from "@/services/kitchens-service";
+import { getEntities } from "@/services/entities-service";
+import { haversineKm } from "@/lib/geo";
+import LocationPicker from "@/components/common/location-picker";
+
+/** Titik awal picker lokasi — Monas, Jakarta Pusat. */
+const DEFAULT_LOC = { lat: -6.175, lng: 106.827 };
 
 export default function PenerimaManfaat() {
   const { toast } = useToast();
@@ -29,7 +37,40 @@ export default function PenerimaManfaat() {
   const [query, setQuery] = useState("");
   const [jenjang, setJenjang] = useState("all");
   const [adding, setAdding] = useState(false);
-  const [form, setForm] = useState({ sekolah: "", jenjang: "SD", alamat: "", siswa: "", dapur: "SPPG Dapur Pusat Senen" });
+  const [form, setForm] = useState({ sekolah: "", jenjang: "SD", alamat: "", siswa: "", kitchenId: "auto" });
+  const [loc, setLoc] = useState(DEFAULT_LOC);
+
+  const [kitchens, setKitchens] = useState<Kitchen[]>([]);
+  useEffect(() => {
+    getKitchens().then(setKitchens);
+  }, []);
+
+  // Rekomendasi dapur berbasis aturan radius (debounce ringan saat pin digeser).
+  const [rec, setRec] = useState<{ name: string; distanceKm: number; inRadius: boolean } | null>(null);
+  useEffect(() => {
+    if (!adding || form.kitchenId !== "auto") {
+      setRec(null);
+      return;
+    }
+    const t = setTimeout(async () => {
+      const res = await recommendKitchen(loc.lat, loc.lng);
+      if (res?.recommendations.length) {
+        const top = res.recommendations.find((r) => r.inRadius) ?? res.recommendations[0];
+        setRec({ name: top.name, distanceKm: top.distanceKm, inRadius: top.inRadius });
+        return;
+      }
+      // Fallback offline: dapur terdekat dihitung di sisi klien.
+      const entities = await getEntities();
+      const kitchensGeo = entities.filter((e) => e.type === "kitchen");
+      if (!kitchensGeo.length) {
+        setRec(null);
+        return;
+      }
+      const nearest = kitchensGeo.reduce((a, b) => (haversineKm(loc, a) <= haversineKm(loc, b) ? a : b));
+      setRec({ name: nearest.name, distanceKm: Math.round(haversineKm(loc, nearest) * 10) / 10, inRadius: true });
+    }, 400);
+    return () => clearTimeout(t);
+  }, [adding, form.kitchenId, loc]);
 
   const totalSiswa = list.reduce((a, b) => a + b.siswa, 0);
   const dapurList = useMemo(() => Array.from(new Set(list.map((b) => b.dapur))), [list]);
@@ -52,21 +93,29 @@ export default function PenerimaManfaat() {
       return;
     }
     const localId = `be${Date.now()}`;
-    // Koordinat default Jakarta — form ini tidak meminta lat/lng.
+    const selectedKitchen = kitchens.find((k) => k.id === form.kitchenId);
+    const dapurName = selectedKitchen?.nama ?? rec?.name ?? "—";
     createBeneficiary({
       name: form.sekolah,
       address: form.alamat || "—",
       jenjang: form.jenjang,
       students: +form.siswa,
-      latitude: -6.2,
-      longitude: 106.816666,
+      latitude: loc.lat,
+      longitude: loc.lng,
       capacity: +form.siswa,
+      ...(form.kitchenId !== "auto" ? { kitchenId: form.kitchenId } : {}),
     }).then((saved) => {
-      if (saved) setList((prev) => prev.map((x) => (x.id === localId ? { ...x, id: saved.id } : x)));
+      if (saved)
+        setList((prev) =>
+          prev.map((x) =>
+            x.id === localId ? { ...x, id: saved.id, dapur: saved.kitchen?.name ?? x.dapur } : x,
+          ),
+        );
     });
-    setList((prev) => [{ id: localId, sekolah: form.sekolah, jenjang: form.jenjang, alamat: form.alamat || "—", siswa: +form.siswa, dapur: form.dapur, status: "Pending" }, ...prev]);
+    setList((prev) => [{ id: localId, sekolah: form.sekolah, jenjang: form.jenjang, alamat: form.alamat || "—", siswa: +form.siswa, dapur: dapurName, status: "Pending" }, ...prev]);
     setAdding(false);
-    setForm({ sekolah: "", jenjang: "SD", alamat: "", siswa: "", dapur: "SPPG Dapur Pusat Senen" });
+    setForm({ sekolah: "", jenjang: "SD", alamat: "", siswa: "", kitchenId: "auto" });
+    setLoc(DEFAULT_LOC);
     toast("Sekolah penerima manfaat ditambahkan.");
   };
 
@@ -126,7 +175,27 @@ export default function PenerimaManfaat() {
             <Field label="Jumlah Siswa" required><TextInput type="number" value={form.siswa} onChange={(v) => setForm({ ...form, siswa: v })} placeholder="0" /></Field>
           </div>
           <Field label="Alamat"><TextInput value={form.alamat} onChange={(v) => setForm({ ...form, alamat: v })} /></Field>
-          <Field label="Dapur Pelayan"><Select value={form.dapur} onChange={(v) => setForm({ ...form, dapur: v })} options={dapurList.map((d) => ({ value: d, label: d }))} /></Field>
+          <Field label="Titik Lokasi (klik peta)">
+            <LocationPicker value={loc} onChange={setLoc} />
+            <p className="text-[11px] text-gray-400 mt-1.5 font-mono">
+              Lat {loc.lat.toFixed(5)} · Lng {loc.lng.toFixed(5)}
+            </p>
+          </Field>
+          <Field label="Dapur Pelayan">
+            <Select
+              value={form.kitchenId}
+              onChange={(v) => setForm({ ...form, kitchenId: v })}
+              options={[
+                { value: "auto", label: "Otomatis (sesuai radius)" },
+                ...kitchens.map((k) => ({ value: k.id, label: k.nama })),
+              ]}
+            />
+            {form.kitchenId === "auto" && rec && (
+              <p className={cn("text-xs mt-1.5 font-semibold", rec.inRadius ? "text-emerald-600" : "text-amber-600")}>
+                Rekomendasi: {rec.name} · {rec.distanceKm} km {rec.inRadius ? "— dalam radius" : "— di luar radius aturan"}
+              </p>
+            )}
+          </Field>
         </div>
       </Modal>
     </div>

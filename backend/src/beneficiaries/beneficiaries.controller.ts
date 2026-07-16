@@ -4,7 +4,11 @@ import { Role } from '@prisma/client';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { PaginationQueryDto } from '../common/dto/pagination-query.dto';
 import { BeneficiariesService } from './beneficiaries.service';
-import { CreateBeneficiaryDto, UpdateBeneficiaryDto } from './dto/beneficiary.dto';
+import {
+  CreateBeneficiaryDto,
+  RecommendKitchenQueryDto,
+  UpdateBeneficiaryDto,
+} from './dto/beneficiary.dto';
 
 @ApiTags('Data Tim & Mitra')
 @ApiBearerAuth()
@@ -15,6 +19,11 @@ export class BeneficiariesController {
   @Get()
   findAll(@Query() q: PaginationQueryDto) {
     return this.service.findAll(q);
+  }
+
+  @Get('recommend-kitchen')
+  recommend(@Query() q: RecommendKitchenQueryDto) {
+    return this.service.recommendKitchens(q.lat, q.lng);
   }
 
   @Get(':id')

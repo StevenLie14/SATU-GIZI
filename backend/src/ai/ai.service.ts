@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { scoreSupplierMatch } from '../common/utils/match-score';
+import { haversineKm, regionCentroid, round1 } from '../common/utils/geo';
 
 export type AiSeverity = 'info' | 'success' | 'warning' | 'critical';
 export interface AiInsight {
@@ -144,11 +145,19 @@ export class AiService {
   /** AI supplier matching for a commodity. */
   async supplierMatch(komoditas: string) {
     const suppliers = await this.prisma.supplier.findMany({ where: { komoditas: { has: komoditas } } });
+    const firstKitchen = await this.prisma.kitchen.findFirst();
+    const center = firstKitchen
+      ? { lat: firstKitchen.latitude, lng: firstKitchen.longitude }
+      : { lat: -6.2, lng: 106.8167 };
     return suppliers
       .map((s) => {
+        const coords =
+          s.latitude != null && s.longitude != null
+            ? { lat: s.latitude, lng: s.longitude }
+            : regionCentroid(s.lokasi);
         const { score, reasons } = scoreSupplierMatch({
           priceIndex: s.hargaIndex,
-          distanceKm: 20,
+          distanceKm: coords ? round1(haversineKm(center, coords)) : 30,
           rating: s.rating,
           leadTimeDays: parseInt(s.leadTime ?? '1', 10) || 1,
         });

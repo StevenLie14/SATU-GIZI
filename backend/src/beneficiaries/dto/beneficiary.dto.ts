@@ -1,4 +1,5 @@
 import { PartialType } from '@nestjs/swagger';
+import { Type } from 'class-transformer';
 import { IsInt, IsNumber, IsOptional, IsString } from 'class-validator';
 
 export class CreateBeneficiaryDto {
@@ -16,3 +17,8 @@ export class CreateBeneficiaryDto {
 }
 
 export class UpdateBeneficiaryDto extends PartialType(CreateBeneficiaryDto) {}
+
+export class RecommendKitchenQueryDto {
+  @Type(() => Number) @IsNumber() lat: number;
+  @Type(() => Number) @IsNumber() lng: number;
+}

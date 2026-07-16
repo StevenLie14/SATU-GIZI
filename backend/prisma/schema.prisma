@@ -73,11 +73,11 @@ enum RfqStatus {
 // Identity & access
 // ===================================================================
 model User {
-  id           String  @id @default(uuid())
-  email        String  @unique
-  password     String
-  name         String?
-  role         Role    @default(MITRA)
+  id       String  @id @default(uuid())
+  email    String  @unique
+  password String
+  name     String?
+  role     Role    @default(MITRA)
 
   businessName String?
   phone        String?
@@ -100,19 +100,19 @@ model User {
 // Map entities
 // ===================================================================
 model School {
-  id          String   @id @default(uuid())
+  id          String  @id @default(uuid())
   name        String
   latitude    Float
   longitude   Float
   address     String
   capacity    Int
-  status      String   @default("active")
+  status      String  @default("active")
   description String?
   phone       String?
 
   // Beneficiary (penerima manfaat) fields
   jenjang   String? // SD, SMP, SMA, PAUD
-  students  Int?    @default(0)
+  students  Int?     @default(0)
   kitchenId String?
   kitchen   Kitchen? @relation(fields: [kitchenId], references: [id])
 
@@ -123,16 +123,18 @@ model School {
 }
 
 model Kitchen {
-  id          String  @id @default(uuid())
-  name        String
-  latitude    Float
-  longitude   Float
-  address     String
-  capacity    Int
-  status      String  @default("active")
-  rating      Float   @default(0.0)
-  description String?
-  phone       String?
+  id              String  @id @default(uuid())
+  name            String
+  latitude        Float
+  longitude       Float
+  address         String
+  capacity        Int
+  // Radius layanan (km) khusus dapur ini; null = ikut aturan global SCHOOL_ASSIGNMENT
+  serviceRadiusKm Float?
+  status          String  @default("active")
+  rating          Float   @default(0.0)
+  description     String?
+  phone           String?
 
   // Perizinan & pengawasan (SPPG)
   kepala         String?
@@ -160,14 +162,14 @@ model ChecklistItem {
 }
 
 model Inspection {
-  id          String   @id @default(uuid())
-  score       Int
-  report      String?
-  inspector   String?
-  txHash      String? // blockchain anchor
-  kitchenId   String
-  kitchen     Kitchen  @relation(fields: [kitchenId], references: [id], onDelete: Cascade)
-  createdAt   DateTime @default(now())
+  id        String   @id @default(uuid())
+  score     Int
+  report    String?
+  inspector String?
+  txHash    String? // blockchain anchor
+  kitchenId String
+  kitchen   Kitchen  @relation(fields: [kitchenId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
 }
 
 // ===================================================================
@@ -195,20 +197,20 @@ model VendorVerification {
 }
 
 model Certificate {
-  id         String  @id @default(uuid())
+  id         String             @id @default(uuid())
   type       String // SLHS, HALAL, HACCP, ISO22000
   nomor      String?
   validUntil String?
-  status     String  @default("Proses") // Valid, Proses, Kadaluarsa
+  status     String             @default("Proses") // Valid, Proses, Kadaluarsa
   docHash    String? // on-chain document hash
   vendorId   String
   vendor     VendorVerification @relation(fields: [vendorId], references: [id], onDelete: Cascade)
 }
 
 model ComplianceItem {
-  id       String  @id @default(uuid())
+  id       String             @id @default(uuid())
   label    String
-  done     Boolean @default(false)
+  done     Boolean            @default(false)
   vendorId String
   vendor   VendorVerification @relation(fields: [vendorId], references: [id], onDelete: Cascade)
 }
@@ -234,6 +236,8 @@ model Supplier {
   nama       String
   komoditas  String[]
   lokasi     String
+  latitude   Float?
+  longitude  Float?
   hargaIndex Int           @default(100)
   leadTime   String?
   rating     Float         @default(0)
@@ -243,18 +247,18 @@ model Supplier {
 }
 
 model LocalProducer {
-  id              String   @id @default(uuid())
-  nama            String
-  jenis           String
-  lokasi          String
-  komoditas       String[]
+  id               String   @id @default(uuid())
+  nama             String
+  jenis            String
+  lokasi           String
+  komoditas        String[]
   kapasitasBulanan String?
-  isUMKM          Boolean  @default(true)
-  rating          Float    @default(0)
-  tenagaKerja     Int      @default(0)
-  status          String   @default("Calon Mitra")
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  isUMKM           Boolean  @default(true)
+  rating           Float    @default(0)
+  tenagaKerja      Int      @default(0)
+  status           String   @default("Calon Mitra")
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
 }
 
 // ===================================================================
@@ -352,8 +356,8 @@ model Ingredient {
 }
 
 model NutritionTarget {
-  id              String @id @default(uuid())
-  kelompok        String @unique
+  id              String  @id @default(uuid())
+  kelompok        String  @unique
   ageRange        String?
   jenjang         String?
   energi          Int
@@ -361,7 +365,7 @@ model NutritionTarget {
   lemak           Int
   karbohidrat     Int
   serat           Int
-  realisasiEnergi Int    @default(0)
+  realisasiEnergi Int     @default(0)
 }
 
 // ===================================================================
@@ -393,17 +397,17 @@ model BudgetProposal {
 }
 
 model OpsReport {
-  id              String   @id @default(uuid())
-  judul           String
-  periode         String
-  dapur           String
-  porsiTerkirim   Int
-  porsiTerencana  Int
-  realisasiBiaya  Float
-  status          String   @default("Draft") // Final, Draft, Direview
-  tanggal         String?
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  id             String   @id @default(uuid())
+  judul          String
+  periode        String
+  dapur          String
+  porsiTerkirim  Int
+  porsiTerencana Int
+  realisasiBiaya Float
+  status         String   @default("Draft") // Final, Draft, Direview
+  tanggal        String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 }
 
 model Review {
@@ -478,18 +482,18 @@ model CatalogItem {
 }
 
 model Rfq {
-  id         String    @id @default(uuid())
-  kode       String    @unique
-  komoditas  String
-  qty        Float
-  satuan     String
-  buyer      String
-  deadline   String?
-  status     RfqStatus @default(TERBUKA)
-  awardedTo  String?
-  quotes     Quote[]
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @updatedAt
+  id        String    @id @default(uuid())
+  kode      String    @unique
+  komoditas String
+  qty       Float
+  satuan    String
+  buyer     String
+  deadline  String?
+  status    RfqStatus @default(TERBUKA)
+  awardedTo String?
+  quotes    Quote[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
 }
 
 model Quote {
@@ -509,6 +513,26 @@ model Quote {
 }
 
 // ===================================================================
+// Geo rules — aturan berbasis titik pusat + radius
+// ===================================================================
+enum GeoRuleScope {
+  SCHOOL_ASSIGNMENT
+  SUPPLIER_MATCH
+  REDISTRIBUTION
+}
+
+model GeoRule {
+  id        String       @id @default(uuid())
+  scope     GeoRuleScope @unique
+  radiusKm  Float
+  centerLat Float? // pusat fallback (dipakai SUPPLIER_MATCH bila tanpa dapur)
+  centerLng Float?
+  active    Boolean      @default(true)
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+}
+
+// ===================================================================
 // Analytics
 // ===================================================================
 model RegionBalance {
@@ -520,7 +544,7 @@ model RegionBalance {
 }
 
 model RedistributionRec {
-  id        String   @id @default(uuid())
+  id         String   @id @default(uuid())
   fromRegion String
   toRegion   String
   komoditas  String
@@ -537,13 +561,13 @@ model RedistributionRec {
 // Notifications
 // ===================================================================
 model Notification {
-  id       String   @id @default(uuid())
-  judul    String
-  pesan    String
-  kategori String   @default("Sistem") // Distribusi, Stok, Anggaran, Sistem, Ulasan
-  dibaca   Boolean  @default(false)
-  userId   String?
-  user     User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id        String   @id @default(uuid())
+  judul     String
+  pesan     String
+  kategori  String   @default("Sistem") // Distribusi, Stok, Anggaran, Sistem, Ulasan
+  dibaca    Boolean  @default(false)
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now())
 }
 

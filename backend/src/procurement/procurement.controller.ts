@@ -18,8 +18,8 @@ export class ProcurementController {
   }
 
   @Get('match')
-  match(@Query('komoditas') komoditas: string) {
-    return this.service.matchSuppliers(komoditas ?? '');
+  match(@Query('komoditas') komoditas: string, @Query('kitchenId') kitchenId?: string) {
+    return this.service.matchSuppliers(komoditas ?? '', kitchenId);
   }
 
   @Get(':id')

@@ -1,8 +1,13 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { StockStatus } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { BlockchainService } from '../blockchain/blockchain.service';
+import { haversineKm, regionCentroid, round1 } from '../common/utils/geo';
+import { GeoRulesService } from '../geo-rules/geo-rules.service';
 import { CreateRedistributionDto } from './dto/redistribution.dto';
+
+// Heuristik penghematan logistik: Rp 15 per kg-km (angka demo)
+const SAVING_PER_KG_KM = 15;
 
 /** Linear-trend forecast (simple regression). */
 function forecastNext(series: number[], periods: number): number[] {
@@ -24,6 +29,7 @@ export class AnalyticsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly blockchain: BlockchainService,
+    private readonly geoRules: GeoRulesService,
   ) {}
 
   /** National dashboard KPIs aggregated across domains. */
@@ -75,12 +81,91 @@ export class AnalyticsService {
     return this.prisma.regionBalance.findMany({ orderBy: { surplus: 'desc' } });
   }
 
-  redistribution() {
-    return this.prisma.redistributionRec.findMany({ orderBy: { createdAt: 'desc' } });
+  /**
+   * Rekomendasi redistribusi — diturunkan dari surplus/defisit RegionBalance,
+   * hanya memasangkan wilayah dalam radius aturan REDISTRIBUTION (centroid
+   * haversine). Baris yang sudah dijadwalkan/di-anchor tetap ditampilkan.
+   */
+  async redistribution() {
+    const [rule, balances, scheduled] = await Promise.all([
+      this.geoRules.getRule('REDISTRIBUTION'),
+      this.prisma.regionBalance.findMany(),
+      this.prisma.redistributionRec.findMany({
+        where: { NOT: { status: 'Direkomendasikan' } },
+        orderBy: { createdAt: 'desc' },
+      }),
+    ]);
+
+    const derived: Array<Record<string, unknown>> = [];
+    const byKomoditas = new Map<string, typeof balances>();
+    for (const b of balances) {
+      const list = byKomoditas.get(b.komoditas) ?? [];
+      list.push(b);
+      byKomoditas.set(b.komoditas, list);
+    }
+
+    for (const [komoditas, rows] of byKomoditas) {
+      const deficits = rows.filter((r) => r.surplus < 0);
+      const surpluses = rows
+        .filter((r) => r.surplus > 0)
+        .map((r) => ({ region: r.region, remaining: r.surplus }));
+
+      for (const deficit of deficits) {
+        const toCentroid = regionCentroid(deficit.region);
+        if (!toCentroid) continue;
+        let need = Math.abs(deficit.surplus);
+
+        const candidates = surpluses
+          .map((s) => {
+            const fromCentroid = regionCentroid(s.region);
+            return fromCentroid
+              ? { ...s, km: round1(haversineKm(fromCentroid, toCentroid)) }
+              : null;
+          })
+          .filter((c): c is { region: string; remaining: number; km: number } => !!c)
+          .filter((c) => !rule.active || c.km <= rule.radiusKm)
+          .sort((a, b) => a.km - b.km);
+
+        for (const c of candidates) {
+          if (need <= 0 || c.remaining <= 0) continue;
+          const jumlah = Math.min(need, c.remaining);
+          const src = surpluses.find((s) => s.region === c.region);
+          if (src) src.remaining -= jumlah;
+          need -= jumlah;
+          const hematJt = (jumlah * c.km * SAVING_PER_KG_KM) / 1_000_000;
+          derived.push({
+            id: `rec-${c.region}-${deficit.region}-${komoditas}`.replace(/\s+/g, '-').toLowerCase(),
+            fromRegion: c.region,
+            toRegion: deficit.region,
+            komoditas,
+            jumlah,
+            satuan: 'kg',
+            jarak: `${Math.round(c.km)} km`,
+            hemat: `Rp ${hematJt.toFixed(1).replace('.', ',')} jt`,
+            status: 'Direkomendasikan',
+            txHash: null,
+            createdAt: new Date(),
+          });
+        }
+      }
+    }
+
+    return [...scheduled, ...derived];
   }
 
   /** Schedule an inter-regional transfer and anchor it on-chain. */
   async scheduleRedistribution(dto: CreateRedistributionDto) {
+    const rule = await this.geoRules.getRule('REDISTRIBUTION');
+    const from = regionCentroid(dto.fromRegion);
+    const to = regionCentroid(dto.toRegion);
+    if (rule.active && from && to) {
+      const km = round1(haversineKm(from, to));
+      if (km > rule.radiusKm) {
+        throw new BadRequestException(
+          `Jarak ${dto.fromRegion} → ${dto.toRegion} (${km} km) melebihi radius aturan redistribusi (${rule.radiusKm} km)`,
+        );
+      }
+    }
     const anchor = await this.blockchain.anchor({
       contract: 'RedistributionLedger',
       method: 'proposeTransfer',
