@@ -5,7 +5,7 @@
 > _Recap terakhir: 2026-07-16_
 
 ## Ringkasan Arsitektur
-
+ 
 | Layer | Stack | Status |
 |-------|-------|--------|
 | **Backend** | NestJS + Prisma (PostgreSQL) | ✅ Fungsional — 29 modul, **171 endpoint REST**, JWT + RBAC + throttling |
