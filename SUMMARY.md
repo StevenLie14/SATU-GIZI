@@ -2,14 +2,16 @@
 
 > **MBG Chain** — platform gizi terpadu (perizinan vendor, rantai pasok, distribusi, gizi & transparansi blockchain) untuk program Makan Bergizi Gratis.
 >
-> _Recap terakhir: 2026-07-16_
+> 🌐 **Live:** https://satu-gizi.stevenlie.my.id · 📚 **API/Swagger:** `/docs`
+>
+> _Recap terakhir: 2026-07-24_
 
 ## Ringkasan Arsitektur
  
 | Layer | Stack | Status |
 |-------|-------|--------|
 | **Backend** | NestJS + Prisma (PostgreSQL) | ✅ Fungsional — 29 modul, **171 endpoint REST**, JWT + RBAC + throttling |
-| **Frontend** | React + Vite + TailwindCSS + React Router | ✅ UI lengkap (31 halaman) — **terhubung ke backend live**, fallback offline (data mock) saat API tak tersedia |
+| **Frontend** | React + Vite + TailwindCSS + React Router | ✅ UI lengkap (34 halaman: 5 marketing + 29 dashboard) — **terhubung ke backend live**, fallback offline (data mock) saat API tak tersedia |
 | **Blockchain** | Solidity + Hardhat | ✅ 4 smart contract **terdeploy di Polygon Amoy** + deploy script + test |
 | **Data** | Prisma schema: **33 model, 9 enum** + seed (`seed.ts`) | ✅ Skema & seed lengkap — **100 sekolah + 20 pasar nyata dari OpenStreetMap** |
 | **Infra** | Docker Compose, Dockerfile (BE/FE), Vercel config | ✅ Siap deploy |
@@ -17,6 +19,22 @@
 > **Catatan integrasi:** Frontend kini **terhubung ke backend live** lewat service layer per domain (27 dari 28 service memanggil API, pola `tryApi` dengan fallback offline ke data mock). Set `VITE_API_URL` untuk mengaktifkan; tanpa itu aplikasi tetap berfungsi penuh dalam mode offline.
 
 **Legenda status:** ✅ Selesai · 🟢 Live (fallback offline) · 🟡 UI mock (backend siap, belum di-wire) · 🔵 Algoritma sisi-klien · ➖ N/A
+
+---
+
+## Akun Demo & Akses
+
+**Live:** https://satu-gizi.stevenlie.my.id · **API/Swagger:** `/docs` · **Repo seed:** `backend/prisma/seed.ts`
+
+| Role | Email | Sandi | Lingkup akses |
+|------|-------|:-----:|---------------|
+| Administrator | `admin@mbgchain.id` | `password123` | Semua modul |
+| Badan Gizi Nasional (Pemerintah) | `pemerintah@mbgchain.id` | `password123` | Semua menu — termasuk **Aturan Wilayah** |
+| SPPG / Dapur | `sppg@mbgchain.id` | `password123` | Dapur, checklist, menu, distribusi |
+| Sekolah | `sekolah@mbgchain.id` | `password123` | Penerimaan, ulasan |
+| Mitra / Vendor | `mitra@mbgchain.id` | `password123` | Pengadaan, RFQ, verifikasi vendor |
+
+> Halaman login juga menyediakan tombol **"Masuk cepat sebagai (mode demo)"** (Pemerintah/SPPG/Mitra/Sekolah) — 1 klik tanpa mengetik sandi. Tombol ini mengirim sandi `demo`, sehingga **hanya berhasil dalam mode offline/mock**. Untuk data live (100 sekolah + 20 pasar OSM), gunakan login manual di atas dengan `VITE_OFFLINE_MODE=false`.
 
 ---
 
@@ -87,7 +105,7 @@
 
 ## Smart Contracts (Blockchain)
 
-Keempat kontrak sudah **terdeploy di Polygon Amoy testnet** — alamat lengkap di `blockchain/deployments/amoy.json` dan `frontend/src/lib/blockchain/abis.ts`.
+Keempat kontrak **terdeploy di Polygon Amoy testnet** (chainId 80002) — alamat ada di `frontend/src/lib/blockchain/abis.ts` (sumber kebenaran). Total ada **5 file `.sol`**: 4 kontrak deployable + `access/MBGRoles.sol` (base RBAC, diwarisi — tidak dideploy sendiri). Kontrak dapat diverifikasi publik di block explorer Amoy; namun **anchoring on-chain di dalam aplikasi masih simulasi deterministik** (pseudo-hash + Postgres) — integrasi UI → chain secara live adalah [langkah tersisa #2](#langkah-lanjut-yang-tersisa).
 
 | Kontrak | Fungsi | Status |
 |---------|--------|:------:|
@@ -105,7 +123,7 @@ Keempat kontrak sudah **terdeploy di Polygon Amoy testnet** — alamat lengkap d
 |------|:-------:|------------|
 | **Backend API** | ✅ ~100% | 29 modul, 171 endpoint, semua Prisma-backed + seed |
 | **Skema data** | ✅ ~100% | 33 model, 9 enum; seed berisi data nyata OSM (100 sekolah + 20 pasar) & aturan wilayah default (10/60/160 km) |
-| **Frontend UI** | ✅ ~100% | 31 halaman + layout marketing & dashboard |
+| **Frontend UI** | ✅ ~100% | 34 halaman (5 marketing + 29 dashboard) + layout marketing & dashboard |
 | **Smart contracts** | ✅ ~100% | 4 kontrak terdeploy di Polygon Amoy + test |
 | **Integrasi FE ↔ BE (live)** | ✅ ~95% | 27/28 service memanggil API dengan fallback offline; sisa: halaman akun (`users`) |
 | **Infra/Deploy** | ✅ Siap | Docker Compose, Dockerfile, Vercel; DB PostgreSQL live (pgbouncer) |
