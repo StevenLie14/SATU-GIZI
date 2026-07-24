@@ -63,7 +63,7 @@
 **Teks di layar:** Data terpisah → keputusan terlambat
 **Naskah:**
 
-> "Yang menanggungnya: Badan Gizi Nasional, ribuan dapur SPPG, dan pemerintah daerah. Masalahnya bukan niat — tapi data yang terpencar di Excel, WhatsApp, dan kertas."
+> "Yang menanggungnya: Badan Gizi Nasional, ribuan dapur SPPG, dan pemerintah daerah. Bukan hanya masalah niat , tapi data yang terpencar di Excel, WhatsApp, dan kertas."
 
 ### Scene 3 — Solusi & Use Case (0:15–0:35)
 
@@ -79,7 +79,7 @@
 **Teks di layar:** 3 pilar · 1 sumber data · sudah online
 **Naskah:**
 
-> "Di atas satu data itu berdiri tiga pilar: perizinan dan pengawasan vendor, pencocokan pasokan antarwilayah, dan marketplace bahan baku untuk UMKM lokal. Bukan konsep — sudah berjalan online."
+> "Di atas satu data itu berdiri tiga pilar: perizinan dan pengawasan vendor, pencocokan pasokan antarwilayah, dan marketplace bahan baku untuk UMKM lokal. Bukan hanya konsep — sudah berjalan online."
 
 ### Scene 5 — Nilai & Adopter (0:45–0:55)
 
@@ -95,7 +95,7 @@
 **Teks di layar:** satu-gizi.stevenlie.my.id
 **Naskah:**
 
-> "Prototipe kami sudah live hari ini. Mari lihat cara kerjanya."
+> "Prototipe kami sudah live dan bisa diakses hari ini. Mari lihat cara kerjanya."
 
 ---
 
